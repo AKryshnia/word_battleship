@@ -78,18 +78,21 @@ lib/
 ├── constants/
 │   ├── constants.dart         # Barrel export
 │   ├── game_constants.dart    # Ship sizes, storage key
-│   └── words.dart             # Russian word lists, board sizing
+│   ├── word_dictionary.dart   # Generated local noun/adjective dictionary
+│   └── words.dart             # Board sizing
 ├── models/
 │   ├── models.dart            # Barrel export
 │   ├── cell.dart              # Cell value object
 │   ├── cell_status.dart       # CellStatus enum
 │   ├── ship.dart              # Ship + ShipCell value objects
-│   └── game_state.dart        # SoloGameState value object
+│   ├── game_state.dart        # SoloGameState value object
+│   └── word_entry.dart        # Dictionary entry models + generation mode
 ├── providers/
 │   └── game_provider.dart     # GameProvider + derived providers
 ├── services/
 │   ├── board_service.dart     # Board creation & ship placement
-│   └── storage_service.dart   # JSON serialization / SharedPreferences
+│   ├── storage_service.dart   # JSON serialization / SharedPreferences
+│   └── word_pair_service.dart # Local word-pair generation
 ├── screens/
 │   └── game_screen.dart       # Root screen widget
 └── widgets/
@@ -164,12 +167,15 @@ Wraps the app in `ProviderScope` (required by Riverpod), configures `MaterialApp
 
 | Symbol | Description |
 |---|---|
-| `nouns` | 10 Russian animal nouns (e.g. `лис`, `кот`) |
-| `adjectives` | 10 Russian adjectives (e.g. `весёлый`, `ленивый`) |
 | `boardSize` | `10` — desktop grid dimension |
 | `mobileBoardSize` | `6` — mobile grid dimension (see TODOs) |
-| `getWordForCell(row, col)` | Returns `"<adjective> <noun>"` deterministically by `row % 10` / `col % 10` |
 | `computeBoardSize()` | Currently always returns `boardSize` (TODO: responsive) |
+
+**`lib/constants/word_dictionary.dart`**
+
+Generated local dictionary derived from OpenRussian Russian Dictionary Data.
+It currently contains filtered `NounEntry` and `AdjectiveEntry` lists for
+runtime word-pair generation. The full source CSV files are not bundled.
 
 ---
 
@@ -217,6 +223,26 @@ All models are **immutable value objects** with `copyWith`, `==`, `hashCode`, an
 | `hitsCount` | `int` | Shots that were hits |
 | `isFinished` | `bool` | All ships sunk |
 
+**`WordGender` enum** (`word_entry.dart`)
+
+| Value | Meaning |
+|---|---|
+| `masculine` | Masculine Russian noun |
+| `feminine` | Feminine Russian noun |
+| `neuter` | Neuter Russian noun |
+
+**`WordPairMode` enum** (`word_entry.dart`)
+
+| Value | Meaning |
+|---|---|
+| `classic` | Prefers semantically closer adjective-noun pairs when tags allow it |
+| `random` | Keeps grammar agreement but intentionally allows stranger tag combinations |
+
+**`NounEntry` / `AdjectiveEntry`** (`word_entry.dart`)
+
+Local dictionary entries. `AdjectiveEntry` stores masculine, feminine, and
+neuter nominative forms so generated phrases can agree with noun gender.
+
 ---
 
 ### Services
@@ -233,6 +259,24 @@ Pure static utility — no state, no side effects.
 | `_hasShipsAround(board, row, col)` | Checks all 8 neighbours for existing ships |
 
 `GameBoardResult` — simple data class bundling `board` + `ships` after generation.
+
+---
+
+**`WordPairService`** (`word_pair_service.dart`)
+
+Generates unique Russian adjective-noun phrases from the local dictionary.
+
+| Method | Description |
+|---|---|
+| `generatePairs(count, mode, seed)` | Returns up to `count` unique phrases. A `seed` makes generation reproducible. |
+
+`classic` mode selects a noun and an adjective, agrees the adjective with noun
+gender, and prefers shared semantic tags when available.
+
+`random` mode also preserves grammatical agreement but prefers adjectives with
+different tags to create stranger combinations for the future "Режим Рандом".
+The UI does not expose this mode yet; board generation is currently fixed to
+`WordPairMode.classic`.
 
 ---
 

@@ -47,3 +47,12 @@ fvm flutter test
 ## Documentation
 
 Detailed architecture notes, project structure, data flow, model references, and implementation details are available in [technical_document.md](technical_document.md).
+
+## Credits / Dictionary Data
+
+The local Russian noun and adjective dictionary is derived from
+[OpenRussian Russian Dictionary Data](https://github.com/Badestrand/russian-dictionary),
+licensed under
+[Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/).
+
+See [LICENSE-DATA.md](LICENSE-DATA.md) for attribution and data-license notes.

@@ -2,25 +2,35 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../constants/constants.dart';
+import 'word_pair_service.dart';
 
 class BoardService {
   static const _uuid = Uuid();
+  static const _wordPairService = WordPairService();
 
   static List<List<Cell>> createEmptyBoard([int? boardSize]) {
     final size = boardSize ?? Words.computeBoardSize();
+    // TODO: Wire WordPairMode.classic / WordPairMode.random to a future UI
+    // setting when the product is ready to expose "Режим Рандом".
+    final words = _wordPairService.generatePairs(
+      count: size * size,
+      mode: WordPairMode.classic,
+    );
     final board = <List<Cell>>[];
 
     for (int row = 0; row < size; row++) {
       final rowCells = <Cell>[];
       for (int col = 0; col < size; col++) {
-        rowCells.add(Cell(
-          id: _generateId(),
-          row: row,
-          col: col,
-          word: Words.getWordForCell(row, col),
-          hasShip: false,
-          status: CellStatus.defaultValue,
-        ));
+        rowCells.add(
+          Cell(
+            id: _generateId(),
+            row: row,
+            col: col,
+            word: words[(row * size) + col],
+            hasShip: false,
+            status: CellStatus.defaultValue,
+          ),
+        );
       }
       board.add(rowCells);
     }
@@ -100,11 +110,7 @@ class BoardService {
       break;
     }
 
-    return Ship(
-      id: _generateId(),
-      cells: cells,
-      sunk: false,
-    );
+    return Ship(id: _generateId(), cells: cells, sunk: false);
   }
 
   static GameBoardResult createNewGameBoard([int? boardSize]) {
@@ -128,8 +134,5 @@ class GameBoardResult {
   final List<List<Cell>> board;
   final List<Ship> ships;
 
-  const GameBoardResult({
-    required this.board,
-    required this.ships,
-  });
+  const GameBoardResult({required this.board, required this.ships});
 }
