@@ -32,15 +32,16 @@ Each cell contains a Russian adjective-noun phrase. When the player taps a cell,
 ## Getting Started
 
 ```bash
-flutter pub get
-flutter run
+fvm install
+fvm flutter pub get
+fvm flutter run
 ```
 
 Run checks:
 
 ```bash
-flutter analyze
-flutter test
+fvm flutter analyze
+fvm flutter test
 ```
 
 ## Documentation

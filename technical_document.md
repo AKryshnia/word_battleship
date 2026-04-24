@@ -380,34 +380,36 @@ Storage key: `word-battleship-solo-v1` (versioned to allow breaking changes).
 
 ### Prerequisites
 
-- Flutter SDK ≥ 3.10.7
+- FVM 4.x
+- Flutter SDK 3.38.6, installed through FVM
 - Dart SDK ≥ 3.x
 
 ### Run
 
 ```bash
-flutter pub get
-flutter run
+fvm install
+fvm flutter pub get
+fvm flutter run
 ```
 
 ### Analyze
 
 ```bash
-flutter analyze
+fvm flutter analyze
 ```
 
 ### Test
 
 ```bash
-flutter test
+fvm flutter test
 ```
 
 ### Build (release)
 
 ```bash
 # Android
-flutter build apk --release
+fvm flutter build apk --release
 
 # Web
-flutter build web --release
+fvm flutter build web --release
 ```
