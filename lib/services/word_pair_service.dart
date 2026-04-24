@@ -42,6 +42,37 @@ class WordPairService {
     return pairs.toList();
   }
 
+  WordBoardVocabulary generateBoardVocabulary({
+    required int size,
+    required WordPairMode mode,
+    int? seed,
+  }) {
+    if (size <= 0) {
+      return const WordBoardVocabulary(columnNouns: [], rowAdjectives: []);
+    }
+
+    final random = Random(seed);
+    final columnNouns = _uniqueNouns(random).take(size).toList();
+    final rowAdjectives = _selectAxisAdjectives(
+      columnNouns: columnNouns,
+      size: size,
+      mode: mode,
+      random: random,
+    );
+
+    return WordBoardVocabulary(
+      columnNouns: columnNouns,
+      rowAdjectives: rowAdjectives,
+    );
+  }
+
+  String buildPhrase({
+    required AdjectiveEntry adjective,
+    required NounEntry noun,
+  }) {
+    return _buildPair(adjective, noun);
+  }
+
   AdjectiveEntry _selectAdjective(
     NounEntry noun,
     WordPairMode mode,
@@ -68,6 +99,50 @@ class WordPairService {
       (adjective) => adjective.tags.every((tag) => !noun.tags.contains(tag)),
     );
     return mismatched.isEmpty ? adjectives : mismatched.toList();
+  }
+
+  List<NounEntry> _uniqueNouns(Random random) {
+    final seen = <String>{};
+    final unique = <NounEntry>[];
+
+    for (final noun in List<NounEntry>.of(nouns)..shuffle(random)) {
+      if (seen.add(noun.word)) {
+        unique.add(noun);
+      }
+    }
+
+    return unique;
+  }
+
+  List<AdjectiveEntry> _selectAxisAdjectives({
+    required List<NounEntry> columnNouns,
+    required int size,
+    required WordPairMode mode,
+    required Random random,
+  }) {
+    final selected = <AdjectiveEntry>[];
+    final seen = <String>{};
+    final nounTags = columnNouns.expand((noun) => noun.tags).toSet();
+    final shuffledAdjectives = List<AdjectiveEntry>.of(adjectives)
+      ..shuffle(random);
+
+    final preferred = switch (mode) {
+      WordPairMode.classic => shuffledAdjectives.where(
+        (adjective) => adjective.tags.any(nounTags.contains),
+      ),
+      WordPairMode.random => shuffledAdjectives.where(
+        (adjective) => adjective.tags.every((tag) => !nounTags.contains(tag)),
+      ),
+    };
+
+    for (final adjective in preferred.followedBy(shuffledAdjectives)) {
+      if (seen.add(adjective.base)) {
+        selected.add(adjective);
+      }
+      if (selected.length == size) break;
+    }
+
+    return selected;
   }
 
   void _fillDeterministically(

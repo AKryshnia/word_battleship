@@ -37,3 +37,13 @@ class NounEntry {
     this.tags = const {},
   });
 }
+
+class WordBoardVocabulary {
+  final List<NounEntry> columnNouns;
+  final List<AdjectiveEntry> rowAdjectives;
+
+  const WordBoardVocabulary({
+    required this.columnNouns,
+    required this.rowAdjectives,
+  });
+}

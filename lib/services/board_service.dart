@@ -8,14 +8,17 @@ class BoardService {
   static const _uuid = Uuid();
   static const _wordPairService = WordPairService();
 
-  static List<List<Cell>> createEmptyBoard([int? boardSize]) {
+  static List<List<Cell>> createEmptyBoard([
+    int? boardSize,
+    WordBoardVocabulary? vocabulary,
+  ]) {
     final size = boardSize ?? Words.computeBoardSize();
-    // TODO: Wire WordPairMode.classic / WordPairMode.random to a future UI
-    // setting when the product is ready to expose "Режим Рандом".
-    final words = _wordPairService.generatePairs(
-      count: size * size,
-      mode: WordPairMode.classic,
-    );
+    final boardVocabulary =
+        vocabulary ??
+        _wordPairService.generateBoardVocabulary(
+          size: size,
+          mode: WordPairMode.classic,
+        );
     final board = <List<Cell>>[];
 
     for (int row = 0; row < size; row++) {
@@ -26,7 +29,10 @@ class BoardService {
             id: _generateId(),
             row: row,
             col: col,
-            word: words[(row * size) + col],
+            word: _wordPairService.buildPhrase(
+              adjective: boardVocabulary.rowAdjectives[row],
+              noun: boardVocabulary.columnNouns[col],
+            ),
             hasShip: false,
             status: CellStatus.defaultValue,
           ),
@@ -113,8 +119,16 @@ class BoardService {
     return Ship(id: _generateId(), cells: cells, sunk: false);
   }
 
-  static GameBoardResult createNewGameBoard([int? boardSize]) {
-    final board = createEmptyBoard(boardSize);
+  static GameBoardResult createNewGameBoard([
+    int? boardSize,
+    WordPairMode mode = WordPairMode.classic,
+  ]) {
+    final size = boardSize ?? Words.computeBoardSize();
+    final vocabulary = _wordPairService.generateBoardVocabulary(
+      size: size,
+      mode: mode,
+    );
+    final board = createEmptyBoard(size, vocabulary);
     final ships = <Ship>[];
 
     for (final size in GameConstants.shipSizes) {
@@ -122,7 +136,12 @@ class BoardService {
       ships.add(ship);
     }
 
-    return GameBoardResult(board: board, ships: ships);
+    return GameBoardResult(
+      board: board,
+      ships: ships,
+      columnNouns: vocabulary.columnNouns,
+      rowAdjectives: vocabulary.rowAdjectives,
+    );
   }
 
   static String _generateId() {
@@ -133,6 +152,13 @@ class BoardService {
 class GameBoardResult {
   final List<List<Cell>> board;
   final List<Ship> ships;
+  final List<NounEntry> columnNouns;
+  final List<AdjectiveEntry> rowAdjectives;
 
-  const GameBoardResult({required this.board, required this.ships});
+  const GameBoardResult({
+    required this.board,
+    required this.ships,
+    required this.columnNouns,
+    required this.rowAdjectives,
+  });
 }

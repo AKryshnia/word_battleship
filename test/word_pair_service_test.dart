@@ -46,6 +46,67 @@ void main() {
       expect(second, first);
     });
 
+    test('board vocabulary has unique column nouns and row adjectives', () {
+      final vocabulary = service.generateBoardVocabulary(
+        size: 10,
+        mode: WordPairMode.classic,
+        seed: 10,
+      );
+
+      expect(vocabulary.columnNouns, hasLength(10));
+      expect(vocabulary.rowAdjectives, hasLength(10));
+      expect(
+        vocabulary.columnNouns.map((entry) => entry.word).toSet(),
+        hasLength(10),
+      );
+      expect(
+        vocabulary.rowAdjectives.map((entry) => entry.base).toSet(),
+        hasLength(10),
+      );
+    });
+
+    test('board vocabulary seed is reproducible', () {
+      final first = service.generateBoardVocabulary(
+        size: 10,
+        mode: WordPairMode.random,
+        seed: 11,
+      );
+      final second = service.generateBoardVocabulary(
+        size: 10,
+        mode: WordPairMode.random,
+        seed: 11,
+      );
+
+      expect(
+        second.columnNouns.map((entry) => entry.word),
+        first.columnNouns.map((entry) => entry.word),
+      );
+      expect(
+        second.rowAdjectives.map((entry) => entry.base),
+        first.rowAdjectives.map((entry) => entry.base),
+      );
+    });
+
+    test('buildPhrase agrees adjective with noun gender', () {
+      const noun = NounEntry(
+        word: 'бухта',
+        gender: WordGender.feminine,
+        tags: {'sea'},
+      );
+      const adjective = AdjectiveEntry(
+        base: 'тихий',
+        masculine: 'тихий',
+        feminine: 'тихая',
+        neuter: 'тихое',
+        tags: {'sea'},
+      );
+
+      expect(
+        service.buildPhrase(adjective: adjective, noun: noun),
+        'тихая бухта',
+      );
+    });
+
     test('generated adjectives agree with noun gender', () {
       final pairs = [
         ...service.generatePairs(

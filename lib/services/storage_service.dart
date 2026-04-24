@@ -39,6 +39,22 @@ class StorageService {
       'movesCount': gameState.movesCount,
       'hitsCount': gameState.hitsCount,
       'isFinished': gameState.isFinished,
+      'lastMoveMessage': gameState.lastMoveMessage,
+      'lastSunkMessage': gameState.lastSunkMessage,
+      'victorySummary': gameState.victorySummary,
+      'lastMoves': gameState.lastMoves
+          .map((entry) => _moveLogEntryToJson(entry))
+          .toList(),
+      'columnNouns': gameState.columnNouns
+          .map((entry) => _nounEntryToJson(entry))
+          .toList(),
+      'rowAdjectives': gameState.rowAdjectives
+          .map((entry) => _adjectiveEntryToJson(entry))
+          .toList(),
+      'interestCells': gameState.interestCells
+          .map((position) => _boardPositionToJson(position))
+          .toList(),
+      'currentMode': gameState.currentMode.name,
     });
   }
 
@@ -59,6 +75,25 @@ class StorageService {
       movesCount: data['movesCount'] as int,
       hitsCount: data['hitsCount'] as int,
       isFinished: data['isFinished'] as bool,
+      lastMoveMessage: data['lastMoveMessage'] as String?,
+      lastSunkMessage: data['lastSunkMessage'] as String?,
+      victorySummary: data['victorySummary'] as String?,
+      columnNouns: ((data['columnNouns'] as List?) ?? const [])
+          .map((entry) => _nounEntryFromJson(entry))
+          .toList(),
+      rowAdjectives: ((data['rowAdjectives'] as List?) ?? const [])
+          .map((entry) => _adjectiveEntryFromJson(entry))
+          .toList(),
+      lastMoves: ((data['lastMoves'] as List?) ?? const [])
+          .map((entry) => _moveLogEntryFromJson(entry))
+          .toList(),
+      interestCells: ((data['interestCells'] as List?) ?? const [])
+          .map((position) => _boardPositionFromJson(position))
+          .toSet(),
+      currentMode: WordPairMode.values.firstWhere(
+        (mode) => mode.name == data['currentMode'],
+        orElse: () => WordPairMode.classic,
+      ),
     );
   }
 
@@ -111,5 +146,63 @@ class StorageService {
 
   static ShipCell _shipCellFromJson(Map<String, dynamic> json) {
     return ShipCell(row: json['row'] as int, col: json['col'] as int);
+  }
+
+  static Map<String, dynamic> _moveLogEntryToJson(MoveLogEntry entry) {
+    return {'phrase': entry.phrase, 'isHit': entry.isHit};
+  }
+
+  static MoveLogEntry _moveLogEntryFromJson(Map<String, dynamic> json) {
+    return MoveLogEntry(
+      phrase: json['phrase'] as String,
+      isHit: json['isHit'] as bool,
+    );
+  }
+
+  static Map<String, dynamic> _boardPositionToJson(BoardPosition position) {
+    return {'row': position.row, 'col': position.col};
+  }
+
+  static BoardPosition _boardPositionFromJson(Map<String, dynamic> json) {
+    return BoardPosition(row: json['row'] as int, col: json['col'] as int);
+  }
+
+  static Map<String, dynamic> _nounEntryToJson(NounEntry entry) {
+    return {
+      'word': entry.word,
+      'gender': entry.gender.name,
+      'tags': entry.tags.toList(),
+    };
+  }
+
+  static NounEntry _nounEntryFromJson(Map<String, dynamic> json) {
+    return NounEntry(
+      word: json['word'] as String,
+      gender: WordGender.values.firstWhere(
+        (gender) => gender.name == json['gender'],
+        orElse: () => WordGender.masculine,
+      ),
+      tags: ((json['tags'] as List?) ?? const []).cast<String>().toSet(),
+    );
+  }
+
+  static Map<String, dynamic> _adjectiveEntryToJson(AdjectiveEntry entry) {
+    return {
+      'base': entry.base,
+      'masculine': entry.masculine,
+      'feminine': entry.feminine,
+      'neuter': entry.neuter,
+      'tags': entry.tags.toList(),
+    };
+  }
+
+  static AdjectiveEntry _adjectiveEntryFromJson(Map<String, dynamic> json) {
+    return AdjectiveEntry(
+      base: json['base'] as String,
+      masculine: json['masculine'] as String,
+      feminine: json['feminine'] as String,
+      neuter: json['neuter'] as String,
+      tags: ((json['tags'] as List?) ?? const []).cast<String>().toSet(),
+    );
   }
 }

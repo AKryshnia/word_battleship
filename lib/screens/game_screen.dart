@@ -13,8 +13,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  String? selectedWord;
-
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
@@ -45,43 +43,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 gameState: gameState,
                 onReset: () => gameProviderNotifier.resetGame(),
               ),
-              
+
               const SizedBox(height: 20),
-              
-              // Selected Word Display
-              if (selectedWord != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: Text(
-                    selectedWord!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.blue[800],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              
+
               // Game Board
               Expanded(
                 child: GameBoard(
                   board: gameState.board,
-                  onCellClick: (row, col, word) {
+                  columnNouns: gameState.columnNouns,
+                  rowAdjectives: gameState.rowAdjectives,
+                  interestCells: gameState.interestCells,
+                  onCellClick: (row, col, _) {
                     gameProviderNotifier.handleCellClick(row, col);
-                    setState(() {
-                      selectedWord = word;
-                    });
                   },
                 ),
               ),
-              
+
               // Footer
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
