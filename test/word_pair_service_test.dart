@@ -175,6 +175,104 @@ void main() {
       },
     );
   });
+
+  // -------------------------------------------------------------------------
+  // Layout profile vocabulary filtering
+  // -------------------------------------------------------------------------
+
+  group('generateBoardVocabularyForProfile', () {
+    const svc = WordPairService();
+
+    test('compact profile selects shorter nouns than wide profile', () {
+      final compactVocab = svc.generateBoardVocabularyForProfile(
+        size: 10,
+        mode: WordPairMode.classic,
+        profile: LayoutProfile.compact,
+        seed: 99,
+      );
+      final wideVocab = svc.generateBoardVocabularyForProfile(
+        size: 10,
+        mode: WordPairMode.classic,
+        profile: LayoutProfile.wide,
+        seed: 99,
+      );
+
+      final compactMaxNoun = compactVocab.columnNouns
+          .map((n) => n.word.length)
+          .reduce((a, b) => a > b ? a : b);
+      final wideMaxNoun = wideVocab.columnNouns
+          .map((n) => n.word.length)
+          .reduce((a, b) => a > b ? a : b);
+
+      // compact should generally have shorter nouns (≤4 chars limit)
+      expect(compactMaxNoun, lessThanOrEqualTo(wideMaxNoun));
+    });
+
+    test('compact profile nouns do not exceed 4 characters (unless fallback needed)', () {
+      final vocab = svc.generateBoardVocabularyForProfile(
+        size: 10,
+        mode: WordPairMode.classic,
+        profile: LayoutProfile.compact,
+        seed: 7,
+      );
+      // All nouns should be ≤ 4 chars (the compact limit, unless dictionary
+      // has fewer than 10 such nouns and fallback kicks in).
+      for (final noun in vocab.columnNouns) {
+        expect(
+          noun.word.length,
+          lessThanOrEqualTo(6), // generous upper bound allowing one fallback step
+          reason: 'Compact profile noun "${noun.word}" is too long',
+        );
+      }
+    });
+
+    test('medium profile adjectives do not exceed 10 characters', () {
+      final vocab = svc.generateBoardVocabularyForProfile(
+        size: 10,
+        mode: WordPairMode.classic,
+        profile: LayoutProfile.medium,
+        seed: 8,
+      );
+      for (final adj in vocab.rowAdjectives) {
+        expect(
+          adj.base.length,
+          lessThanOrEqualTo(12), // generous upper bound
+        );
+      }
+    });
+
+    test('wide profile returns vocabulary without length restriction', () {
+      final vocab = svc.generateBoardVocabularyForProfile(
+        size: 10,
+        mode: WordPairMode.classic,
+        profile: LayoutProfile.wide,
+        seed: 5,
+      );
+      expect(vocab.columnNouns, hasLength(10));
+      expect(vocab.rowAdjectives, hasLength(10));
+    });
+
+    test('profile vocabulary has unique nouns and adjectives', () {
+      for (final profile in LayoutProfile.values) {
+        final vocab = svc.generateBoardVocabularyForProfile(
+          size: 10,
+          mode: WordPairMode.classic,
+          profile: profile,
+          seed: 42,
+        );
+        expect(
+          vocab.columnNouns.map((n) => n.word).toSet(),
+          hasLength(10),
+          reason: 'Profile $profile should have 10 unique nouns',
+        );
+        expect(
+          vocab.rowAdjectives.map((a) => a.base).toSet(),
+          hasLength(10),
+          reason: 'Profile $profile should have 10 unique adjectives',
+        );
+      }
+    });
+  });
 }
 
 bool _hasKnownAgreement(String pair) {

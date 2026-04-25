@@ -206,6 +206,49 @@ void main() {
       }
     });
 
+    test('layoutProfile is stored in game state', () {
+      container.read(gameProvider.notifier).resetGame(LayoutProfile.compact);
+      expect(container.read(gameProvider).layoutProfile, LayoutProfile.compact);
+
+      container.read(gameProvider.notifier).resetGame(LayoutProfile.wide);
+      expect(container.read(gameProvider).layoutProfile, LayoutProfile.wide);
+    });
+
+    test('axes do not change between moves (no window-resize recomputation)', () {
+      final initial = container.read(gameProvider);
+      final initialNouns = initial.columnNouns.map((e) => e.word).toList();
+      final initialAdjs = initial.rowAdjectives.map((e) => e.base).toList();
+
+      // Fire a few shots.
+      final miss = _firstCell(initial, hasShip: false);
+      container.read(gameProvider.notifier).handleCellClick(miss.row, miss.col);
+
+      final after = container.read(gameProvider);
+      expect(
+        after.columnNouns.map((e) => e.word).toList(),
+        orderedEquals(initialNouns),
+        reason: 'Column nouns must not change between moves',
+      );
+      expect(
+        after.rowAdjectives.map((e) => e.base).toList(),
+        orderedEquals(initialAdjs),
+        reason: 'Row adjectives must not change between moves',
+      );
+    });
+
+    test('compact profile produces shorter nouns than wide profile', () {
+      container.read(gameProvider.notifier).resetGame(LayoutProfile.compact);
+      final compactNouns = container.read(gameProvider).columnNouns;
+
+      container.read(gameProvider.notifier).resetGame(LayoutProfile.wide);
+      final wideNouns = container.read(gameProvider).columnNouns;
+
+      final compactMax = compactNouns.map((n) => n.word.length).reduce((a, b) => a > b ? a : b);
+      final wideMax = wideNouns.map((n) => n.word.length).reduce((a, b) => a > b ? a : b);
+
+      expect(compactMax, lessThanOrEqualTo(wideMax));
+    });
+
     test('reset creates fresh word coordinate axes', () {
       final initial = container.read(gameProvider);
       final initialNouns = initial.columnNouns

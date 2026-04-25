@@ -20,6 +20,7 @@ class SoloGameState {
   final List<MoveLogEntry>? _lastMoves;
   final Set<BoardPosition>? _interestCells;
   final WordPairMode? _currentMode;
+  final LayoutProfile? _layoutProfile;
 
   const SoloGameState({
     required this.board,
@@ -28,6 +29,7 @@ class SoloGameState {
     required this.hitsCount,
     required this.isFinished,
     required WordPairMode currentMode,
+    LayoutProfile layoutProfile = LayoutProfile.medium,
     this.lastMoveMessage,
     this.lastSunkMessage,
     this.victorySummary,
@@ -39,7 +41,8 @@ class SoloGameState {
        _rowAdjectives = rowAdjectives,
        _lastMoves = lastMoves,
        _interestCells = interestCells,
-       _currentMode = currentMode;
+       _currentMode = currentMode,
+       _layoutProfile = layoutProfile;
 
   List<NounEntry> get columnNouns => _columnNouns ?? const [];
 
@@ -50,6 +53,8 @@ class SoloGameState {
   Set<BoardPosition> get interestCells => _interestCells ?? const {};
 
   WordPairMode get currentMode => _currentMode ?? WordPairMode.classic;
+
+  LayoutProfile get layoutProfile => _layoutProfile ?? LayoutProfile.medium;
 
   SoloGameState copyWith({
     List<List<Cell>>? board,
@@ -65,6 +70,7 @@ class SoloGameState {
     List<MoveLogEntry>? lastMoves,
     Set<BoardPosition>? interestCells,
     WordPairMode? currentMode,
+    LayoutProfile? layoutProfile,
     bool clearLastSunkMessage = false,
     bool clearVictorySummary = false,
   }) {
@@ -86,6 +92,7 @@ class SoloGameState {
       lastMoves: lastMoves ?? this.lastMoves,
       interestCells: interestCells ?? this.interestCells,
       currentMode: currentMode ?? this.currentMode,
+      layoutProfile: layoutProfile ?? this.layoutProfile,
     );
   }
 
@@ -105,7 +112,8 @@ class SoloGameState {
         other.rowAdjectives == rowAdjectives &&
         other.lastMoves == lastMoves &&
         other.interestCells == interestCells &&
-        other.currentMode == currentMode;
+        other.currentMode == currentMode &&
+        other.layoutProfile == layoutProfile;
   }
 
   @override
@@ -124,11 +132,18 @@ class SoloGameState {
       Object.hashAll(lastMoves),
       Object.hashAllUnordered(interestCells),
       currentMode,
+      layoutProfile,
     );
   }
 
   @override
   String toString() {
-    return 'SoloGameState(board: $board, ships: $ships, movesCount: $movesCount, hitsCount: $hitsCount, isFinished: $isFinished, lastMoveMessage: $lastMoveMessage, lastSunkMessage: $lastSunkMessage, victorySummary: $victorySummary, columnNouns: $columnNouns, rowAdjectives: $rowAdjectives, lastMoves: $lastMoves, interestCells: $interestCells, currentMode: $currentMode)';
+    return 'SoloGameState(board: $board, ships: $ships, movesCount: $movesCount, '
+        'hitsCount: $hitsCount, isFinished: $isFinished, '
+        'lastMoveMessage: $lastMoveMessage, lastSunkMessage: $lastSunkMessage, '
+        'victorySummary: $victorySummary, columnNouns: $columnNouns, '
+        'rowAdjectives: $rowAdjectives, lastMoves: $lastMoves, '
+        'interestCells: $interestCells, currentMode: $currentMode, '
+        'layoutProfile: $layoutProfile)';
   }
 }

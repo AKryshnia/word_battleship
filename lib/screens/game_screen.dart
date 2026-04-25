@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/models.dart';
 import '../providers/game_provider.dart';
 import '../widgets/game_board.dart';
 import '../widgets/game_header.dart';
@@ -14,9 +15,30 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   @override
+  void initState() {
+    super.initState();
+    // Apply the real layout profile on the first frame when context is available.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final profile = _layoutProfile(context);
+      final current = ref.read(gameProvider).layoutProfile;
+      if (current != profile) {
+        ref.read(gameProvider.notifier).resetGame(profile);
+      }
+    });
+  }
+
+  LayoutProfile _layoutProfile(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 420) return LayoutProfile.compact;
+    if (width < 700) return LayoutProfile.medium;
+    return LayoutProfile.wide;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
-    final gameProviderNotifier = ref.read(gameProvider.notifier);
+    final notifier = ref.read(gameProvider.notifier);
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -38,15 +60,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Game Header
               GameHeader(
                 gameState: gameState,
-                onReset: () => gameProviderNotifier.resetGame(),
+                onReset: () => notifier.resetGame(_layoutProfile(context)),
               ),
-
               const SizedBox(height: 20),
-
-              // Game Board
               Expanded(
                 child: GameBoard(
                   board: gameState.board,
@@ -54,12 +72,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   rowAdjectives: gameState.rowAdjectives,
                   interestCells: gameState.interestCells,
                   onCellClick: (row, col, _) {
-                    gameProviderNotifier.handleCellClick(row, col);
+                    notifier.handleCellClick(row, col);
                   },
                 ),
               ),
-
-              // Footer
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(

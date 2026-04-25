@@ -9,8 +9,14 @@ class GameProvider extends Notifier<SoloGameState> {
     return _createInitialState();
   }
 
-  static SoloGameState _createInitialState() {
-    final result = BoardService.createNewGameBoard();
+  static SoloGameState _createInitialState([
+    LayoutProfile profile = LayoutProfile.medium,
+  ]) {
+    final result = BoardService.createNewGameBoard(
+      null,
+      WordPairMode.classic,
+      profile,
+    );
     return SoloGameState(
       board: result.board,
       ships: result.ships,
@@ -19,8 +25,8 @@ class GameProvider extends Notifier<SoloGameState> {
       isFinished: false,
       columnNouns: result.columnNouns,
       rowAdjectives: result.rowAdjectives,
-      // TODO: Wire classic/random mode to a future UI switch.
       currentMode: WordPairMode.classic,
+      layoutProfile: profile,
     );
   }
 
@@ -75,8 +81,8 @@ class GameProvider extends Notifier<SoloGameState> {
     );
   }
 
-  void resetGame() {
-    state = _createInitialState();
+  void resetGame([LayoutProfile profile = LayoutProfile.medium]) {
+    state = _createInitialState(profile);
   }
 
   List<List<Cell>> _updateBoardCell(int row, int col) {

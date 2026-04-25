@@ -3,6 +3,20 @@ import 'dart:math';
 import '../constants/word_dictionary.dart';
 import '../models/word_entry.dart';
 
+// Max character lengths per layout profile (noun base form, adjective base form).
+// null means no restriction.
+const _nounMaxLen = {
+  LayoutProfile.compact: 4,
+  LayoutProfile.medium: 7,
+  LayoutProfile.wide: null,
+};
+
+const _adjMaxLen = {
+  LayoutProfile.compact: 7,
+  LayoutProfile.medium: 10,
+  LayoutProfile.wide: null,
+};
+
 class WordPairService {
   const WordPairService({
     this.nouns = localNouns,
@@ -71,6 +85,50 @@ class WordPairService {
     required NounEntry noun,
   }) {
     return _buildPair(adjective, noun);
+  }
+
+  /// Generates board vocabulary filtered by word length for [profile].
+  /// If too few words pass the length limit, relaxes the constraint by 1 char
+  /// at a time until [size] candidates are available.
+  WordBoardVocabulary generateBoardVocabularyForProfile({
+    required int size,
+    required WordPairMode mode,
+    required LayoutProfile profile,
+    int? seed,
+  }) {
+    final filteredNouns = _wordsForProfile(
+      nouns,
+      _nounMaxLen[profile],
+      (n) => n.word.length,
+      size,
+    );
+    final filteredAdjs = _wordsForProfile(
+      adjectives,
+      _adjMaxLen[profile],
+      (a) => a.base.length,
+      size,
+    );
+    final svc = WordPairService(nouns: filteredNouns, adjectives: filteredAdjs);
+    return svc.generateBoardVocabulary(size: size, mode: mode, seed: seed);
+  }
+
+  static List<T> _wordsForProfile<T>(
+    List<T> all,
+    int? maxLen,
+    int Function(T) getLen,
+    int size,
+  ) {
+    if (maxLen == null) return all;
+
+    var limit = maxLen;
+    var candidates = all.where((w) => getLen(w) <= limit).toList();
+
+    while (candidates.length < size && limit < 30) {
+      limit++;
+      candidates = all.where((w) => getLen(w) <= limit).toList();
+    }
+
+    return candidates.isEmpty ? all : candidates;
   }
 
   AdjectiveEntry _selectAdjective(

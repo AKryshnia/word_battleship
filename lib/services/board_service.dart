@@ -122,11 +122,13 @@ class BoardService {
   static GameBoardResult createNewGameBoard([
     int? boardSize,
     WordPairMode mode = WordPairMode.classic,
+    LayoutProfile profile = LayoutProfile.medium,
   ]) {
     final size = boardSize ?? Words.computeBoardSize();
-    final vocabulary = _wordPairService.generateBoardVocabulary(
+    final vocabulary = _wordPairService.generateBoardVocabularyForProfile(
       size: size,
       mode: mode,
+      profile: profile,
     );
     final board = createEmptyBoard(size, vocabulary);
     final ships = <Ship>[];

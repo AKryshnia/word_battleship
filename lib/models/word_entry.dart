@@ -2,6 +2,8 @@ enum WordGender { masculine, feminine, neuter }
 
 enum WordPairMode { classic, random }
 
+enum LayoutProfile { compact, medium, wide }
+
 class AdjectiveEntry {
   final String base;
   final String masculine;
