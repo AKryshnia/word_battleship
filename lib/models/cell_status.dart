@@ -2,7 +2,8 @@ enum CellStatus {
   defaultValue,
   hit,
   miss,
-  blocked;
+  blocked,
+  sunk;
 
   String get displayName {
     switch (this) {
@@ -14,6 +15,8 @@ enum CellStatus {
         return 'miss';
       case CellStatus.blocked:
         return 'blocked';
+      case CellStatus.sunk:
+        return 'sunk';
     }
   }
 }

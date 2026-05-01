@@ -44,7 +44,10 @@ class GameProvider extends Notifier<SoloGameState> {
     final newlySunkShip = _findNewlySunkShip(state.ships, updatedShips);
     final finalBoard = newlySunkShip == null
         ? updatedBoard
-        : _blockSunkShipNeighbours(updatedBoard, newlySunkShip);
+        : _markSunkCells(
+            _blockSunkShipNeighbours(updatedBoard, newlySunkShip),
+            newlySunkShip,
+          );
     final newMovesCount = state.movesCount + 1;
     final hitsCount = state.hitsCount + (cell.hasShip ? 1 : 0);
     final lastMoveMessage = _buildMoveMessage(cell);
@@ -110,6 +113,7 @@ class GameProvider extends Notifier<SoloGameState> {
 
   List<Ship> _markSunkShips(List<Ship> ships, List<List<Cell>> board) {
     return ships.map((ship) {
+      if (ship.sunk) return ship; // Already sunk — preserve state.
       final allHit = ship.cells.every(
         (shipCell) =>
             board[shipCell.row][shipCell.col].status == CellStatus.hit,
@@ -128,6 +132,14 @@ class GameProvider extends Notifier<SoloGameState> {
       }
     }
     return null;
+  }
+
+  List<List<Cell>> _markSunkCells(List<List<Cell>> board, Ship ship) {
+    for (final shipCell in ship.cells) {
+      final cell = board[shipCell.row][shipCell.col];
+      board[shipCell.row][shipCell.col] = cell.copyWith(status: CellStatus.sunk);
+    }
+    return board;
   }
 
   List<List<Cell>> _blockSunkShipNeighbours(List<List<Cell>> board, Ship ship) {
@@ -164,11 +176,10 @@ class GameProvider extends Notifier<SoloGameState> {
   }
 
   List<MoveLogEntry> _appendMoveLog(Cell cell) {
-    final nextMoves = [
+    return [
       MoveLogEntry(phrase: cell.word, isHit: cell.hasShip),
       ...state.lastMoves,
     ];
-    return nextMoves.take(SoloGameState.moveLogLimit).toList();
   }
 
   Set<BoardPosition> _buildInterestCells(

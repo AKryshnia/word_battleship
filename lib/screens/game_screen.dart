@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../models/models.dart';
 import '../providers/game_provider.dart';
-import '../widgets/game_board.dart';
-import '../widgets/game_header.dart';
+import '../theme/app_theme.dart';
+import '../widgets/game_shell.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -28,6 +28,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
   }
 
+  EdgeInsets _outerPadding(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < 420) return const EdgeInsets.symmetric(horizontal: 6, vertical: 6);
+    if (width < 700) return const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    return const EdgeInsets.symmetric(horizontal: 20, vertical: 16);
+  }
+
   LayoutProfile _layoutProfile(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     if (width < 420) return LayoutProfile.compact;
@@ -41,48 +48,27 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final notifier = ref.read(gameProvider.notifier);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text(
-          'Word Battleship',
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.blue[600],
-        elevation: 0,
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: _outerPadding(context),
           child: Column(
+            // CrossAxisAlignment.center + ConstrainedBox(maxWidth) below
+            // centres the shell on wide screens while filling narrow ones.
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              GameHeader(
-                gameState: gameState,
-                onReset: () => notifier.resetGame(_layoutProfile(context)),
-              ),
-              const SizedBox(height: 20),
               Expanded(
-                child: GameBoard(
-                  board: gameState.board,
-                  columnNouns: gameState.columnNouns,
-                  rowAdjectives: gameState.rowAdjectives,
-                  interestCells: gameState.interestCells,
-                  onCellClick: (row, col, _) {
-                    notifier.handleCellClick(row, col);
-                  },
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  'Prototype · Word Battleship · MVP',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 980),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: GameShell(
+                      gameState: gameState,
+                      onReset: () =>
+                          notifier.resetGame(_layoutProfile(context)),
+                      onCellClick: (row, col) =>
+                          notifier.handleCellClick(row, col),
+                    ),
                   ),
                 ),
               ),

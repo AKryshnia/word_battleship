@@ -3,9 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -39,10 +39,7 @@ class _GameBoardState extends State<GameBoard> {
   /// Desktop: position under the cursor.
   BoardPosition? _hover;
 
-  /// Mobile: first-tap selection (second tap fires).
-  BoardPosition? _pending;
-
-  /// Post-click highlight — stays for [_postClickMs] after firing.
+  /// Post-fire highlight — stays for [_postClickMs] after any shot.
   BoardPosition? _lastFired;
 
   Timer? _postClickTimer;
@@ -59,7 +56,7 @@ class _GameBoardState extends State<GameBoard> {
 
   // ------ active coord (drives all highlights) ------
 
-  BoardPosition? get _activeCoord => _hover ?? _pending ?? _lastFired;
+  BoardPosition? get _activeCoord => _hover ?? _lastFired;
 
   // ------ lifecycle ------
 
@@ -70,7 +67,6 @@ class _GameBoardState extends State<GameBoard> {
     if (!identical(oldWidget.board, widget.board)) {
       _postClickTimer?.cancel();
       _hover = null;
-      _pending = null;
       _lastFired = null;
     }
   }
@@ -94,29 +90,14 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   void _onCellTap(int row, int col, CellStatus status, String word) {
-    if (status != CellStatus.defaultValue) {
-      // Tapping a revealed cell clears mobile selection.
-      if (!_isDesktop) setState(() => _pending = null);
-      return;
-    }
-
-    if (_isDesktop) {
-      _fire(row, col, word);
-    } else {
-      final pos = BoardPosition(row: row, col: col);
-      if (_pending == pos) {
-        _fire(row, col, word); // second tap on same cell
-      } else {
-        setState(() => _pending = pos); // first tap: select
-      }
-    }
+    if (status != CellStatus.defaultValue) return;
+    _fire(row, col, word);
   }
 
   void _fire(int row, int col, String word) {
     widget.onCellClick(row, col, word);
     _postClickTimer?.cancel();
     setState(() {
-      _pending = null;
       _lastFired = BoardPosition(row: row, col: col);
     });
     _postClickTimer = Timer(
@@ -150,21 +131,9 @@ class _GameBoardState extends State<GameBoard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(builder: _buildGrid),
-    );
+    // The shell (GameShell) provides the card decoration and padding.
+    // GameBoard is raw layout content: no outer card, no extra padding.
+    return LayoutBuilder(builder: _buildGrid);
   }
 
   Widget _buildGrid(BuildContext context, BoxConstraints constraints) {
@@ -172,9 +141,10 @@ class _GameBoardState extends State<GameBoard> {
 
     // --- layout constants derived from available space + actual vocabulary ---
     final isNarrow = constraints.maxWidth < 460;
-    final fontSize = isNarrow ? 10.0 : 12.0;
-    // Poppins geometric sans at this size: ~0.65 px per character width.
-    final charW = fontSize * 0.65;
+    final axisFs = isNarrow ? AppDimensions.axisFsMd : AppDimensions.axisFs;
+
+    // Manrope geometric sans at this size: ~0.65 px per character width.
+    final charW = axisFs * 0.65;
 
     final maxNounLen = widget.columnNouns.isEmpty
         ? 5
@@ -188,16 +158,15 @@ class _GameBoardState extends State<GameBoard> {
     // Row header width = space for horizontal adjective text.
     final rowHeaderWidth = (maxAdjLen * charW + 24).clamp(64.0, 180.0);
 
-    const gap = 4.0;
-    final cellGap = isNarrow ? 2.0 : gap;
+    const cellGap = AppDimensions.cellGap;
+    const axisGap = 4.0; // gap between axis header and grid
 
-    final maxGridW = constraints.maxWidth - rowHeaderWidth - gap;
+    final maxGridW = constraints.maxWidth - rowHeaderWidth - axisGap;
     final maxGridH = constraints.maxHeight.isFinite
-        ? constraints.maxHeight - columnHeaderHeight - gap
+        ? constraints.maxHeight - columnHeaderHeight - axisGap
         : maxGridW;
     final gridSize = min(maxGridW, maxGridH).clamp(0.0, double.infinity);
-    final cellSize =
-        (gridSize - cellGap * (boardSize - 1)) / boardSize;
+    final cellSize = (gridSize - cellGap * (boardSize - 1)) / boardSize;
 
     final activeCol = _activeCoord?.col;
     final activeRow = _activeCoord?.row;
@@ -205,8 +174,8 @@ class _GameBoardState extends State<GameBoard> {
     return Align(
       alignment: Alignment.topCenter,
       child: SizedBox(
-        width: rowHeaderWidth + gap + gridSize,
-        height: columnHeaderHeight + gap + gridSize,
+        width: rowHeaderWidth + axisGap + gridSize,
+        height: columnHeaderHeight + axisGap + gridSize,
         child: Column(
           children: [
             // --- top axis: rotated nouns ---
@@ -214,14 +183,14 @@ class _GameBoardState extends State<GameBoard> {
               height: columnHeaderHeight,
               child: Row(
                 children: [
-                  SizedBox(width: rowHeaderWidth + gap),
+                  SizedBox(width: rowHeaderWidth + axisGap),
                   SizedBox(
                     width: gridSize,
                     child: _ColumnHeaderRow(
                       nouns: widget.columnNouns,
                       cellSize: cellSize,
                       gap: cellGap,
-                      fontSize: fontSize,
+                      axisFs: axisFs,
                       activeIndex: activeCol,
                       headerHeight: columnHeaderHeight,
                     ),
@@ -229,7 +198,7 @@ class _GameBoardState extends State<GameBoard> {
                 ],
               ),
             ),
-            SizedBox(height: gap),
+            const SizedBox(height: axisGap),
             // --- left axis + grid ---
             Row(
               children: [
@@ -240,11 +209,11 @@ class _GameBoardState extends State<GameBoard> {
                     adjectives: widget.rowAdjectives,
                     cellSize: cellSize,
                     gap: cellGap,
-                    fontSize: fontSize,
+                    axisFs: axisFs,
                     activeIndex: activeRow,
                   ),
                 ),
-                SizedBox(width: gap),
+                const SizedBox(width: axisGap),
                 SizedBox(
                   width: gridSize,
                   height: gridSize,
@@ -277,7 +246,6 @@ class _GameBoardState extends State<GameBoard> {
                             isActiveCell: _isActiveCell(row, col),
                             isRowPath: _isRowPath(row, col),
                             isColPath: _isColPath(row, col),
-                            fontSize: fontSize,
                           ),
                         ),
                       );
@@ -301,7 +269,7 @@ class _ColumnHeaderRow extends StatelessWidget {
   final List<NounEntry> nouns;
   final double cellSize;
   final double gap;
-  final double fontSize;
+  final double axisFs;
   final int? activeIndex;
   final double headerHeight;
 
@@ -309,7 +277,7 @@ class _ColumnHeaderRow extends StatelessWidget {
     required this.nouns,
     required this.cellSize,
     required this.gap,
-    required this.fontSize,
+    required this.axisFs,
     required this.activeIndex,
     required this.headerHeight,
   });
@@ -325,9 +293,7 @@ class _ColumnHeaderRow extends StatelessWidget {
             child: _NounLabel(
               word: nouns[i].word,
               isActive: i == activeIndex,
-              fontSize: fontSize,
-              cellWidth: cellSize,
-              headerHeight: headerHeight,
+              axisFs: axisFs,
             ),
           ),
           if (i < nouns.length - 1) SizedBox(width: gap),
@@ -340,41 +306,30 @@ class _ColumnHeaderRow extends StatelessWidget {
 class _NounLabel extends StatelessWidget {
   final String word;
   final bool isActive;
-  final double fontSize;
-  final double cellWidth;
-  final double headerHeight;
+  final double axisFs;
 
   const _NounLabel({
     required this.word,
     required this.isActive,
-    required this.fontSize,
-    required this.cellWidth,
-    required this.headerHeight,
+    required this.axisFs,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      decoration: BoxDecoration(
-        color: isActive ? Colors.blue.withValues(alpha: 0.12) : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: isActive
-            ? Border.all(color: Colors.blue[400]!, width: 1)
-            : null,
-      ),
-      child: Center(
-        child: RotatedBox(
-          // quarterTurns: 3 → 90° CCW → text reads bottom-to-top (tilt head left)
-          quarterTurns: 3,
+    final style = (isActive
+            ? AppTextStyles.axisLabelActive
+            : AppTextStyles.axisLabel)
+        .copyWith(fontSize: axisFs, letterSpacing: 0.025 * axisFs);
+
+    return Center(
+      child: RotatedBox(
+        // quarterTurns: 3 → 90° CCW → text reads bottom-to-top (tilt head left)
+        quarterTurns: 3,
+        child: AnimatedDefaultTextStyle(
+          style: style,
+          duration: const Duration(milliseconds: 100),
           child: Text(
             word,
-            style: GoogleFonts.poppins(
-              fontSize: fontSize,
-              height: 1.1,
-              fontWeight: FontWeight.w600,
-              color: isActive ? Colors.blue[900] : Colors.blue[900],
-            ),
             overflow: TextOverflow.visible,
             softWrap: false,
           ),
@@ -392,14 +347,14 @@ class _RowHeaderColumn extends StatelessWidget {
   final List<AdjectiveEntry> adjectives;
   final double cellSize;
   final double gap;
-  final double fontSize;
+  final double axisFs;
   final int? activeIndex;
 
   const _RowHeaderColumn({
     required this.adjectives,
     required this.cellSize,
     required this.gap,
-    required this.fontSize,
+    required this.axisFs,
     required this.activeIndex,
   });
 
@@ -413,7 +368,7 @@ class _RowHeaderColumn extends StatelessWidget {
             child: _AdjectiveLabel(
               word: adjectives[i].base,
               isActive: i == activeIndex,
-              fontSize: fontSize,
+              axisFs: axisFs,
             ),
           ),
           if (i < adjectives.length - 1) SizedBox(height: gap),
@@ -426,39 +381,30 @@ class _RowHeaderColumn extends StatelessWidget {
 class _AdjectiveLabel extends StatelessWidget {
   final String word;
   final bool isActive;
-  final double fontSize;
+  final double axisFs;
 
   const _AdjectiveLabel({
     required this.word,
     required this.isActive,
-    required this.fontSize,
+    required this.axisFs,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      decoration: BoxDecoration(
-        color: isActive
-            ? Colors.blueGrey.withValues(alpha: 0.12)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: isActive
-            ? Border.all(color: Colors.blueGrey[400]!, width: 1)
-            : null,
-      ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 8),
+    final style = (isActive
+            ? AppTextStyles.axisLabelActive
+            : AppTextStyles.axisLabel)
+        .copyWith(fontSize: axisFs, letterSpacing: 0.025 * axisFs);
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: AnimatedDefaultTextStyle(
+          style: style,
+          duration: const Duration(milliseconds: 100),
           child: Text(
             word,
-            style: GoogleFonts.poppins(
-              fontSize: fontSize,
-              height: 1.1,
-              fontWeight: FontWeight.w600,
-              color: isActive ? Colors.blueGrey[900] : Colors.blueGrey[700],
-            ),
             maxLines: 1,
             overflow: TextOverflow.clip,
             softWrap: false,
@@ -479,7 +425,6 @@ class _CellWidget extends StatelessWidget {
   final bool isActiveCell;
   final bool isRowPath;
   final bool isColPath;
-  final double fontSize;
 
   const _CellWidget({
     required this.cell,
@@ -487,78 +432,142 @@ class _CellWidget extends StatelessWidget {
     required this.isActiveCell,
     required this.isRowPath,
     required this.isColPath,
-    required this.fontSize,
   });
+
+  bool get _isPath =>
+      (isRowPath || isColPath) && cell.status == CellStatus.defaultValue;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: _cellColor(),
-        borderRadius: BorderRadius.circular(fontSize < 11 ? 4 : 8),
-        border: Border.all(color: _borderColor(), width: isActiveCell ? 2 : 1),
-        boxShadow: [
-          if (isActiveCell)
-            BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.28),
-              blurRadius: 8,
-              spreadRadius: 1,
-            )
-          else if (isInterestCell)
-            BoxShadow(
-              color: Colors.amber.withValues(alpha: 0.35),
-              blurRadius: 8,
-              spreadRadius: 1,
-            )
-          else if (cell.status == CellStatus.defaultValue)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-        ],
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCell),
+        border: Border.all(
+          color: _borderColor(),
+          width: isActiveCell ? 1.5 : 1.0,
+        ),
+        boxShadow: _shadows(),
       ),
       child: Center(child: _content()),
     );
   }
 
   Color _cellColor() {
-    // Priority: active > interest > path (only on default) > status
-    if (isActiveCell) return Colors.blue[200]!;
-    if (isInterestCell) return Colors.amber[50]!;
+    if (isActiveCell) return AppColors.cellHoverBg;
+    if (isInterestCell) return AppColors.accentFaint;
     return switch (cell.status) {
       CellStatus.defaultValue =>
-        (isRowPath || isColPath) ? Colors.blue[100]! : Colors.blue[50]!,
-      CellStatus.hit => Colors.red[400]!,
-      CellStatus.miss => Colors.grey[300]!,
-      CellStatus.blocked => Colors.grey[400]!,
+        _isPath ? AppColors.cellPathBg : AppColors.cellDefaultBg,
+      CellStatus.hit     => AppColors.cellHitBg,
+      CellStatus.miss    => AppColors.cellMissBg,
+      CellStatus.blocked => AppColors.cellBlockedBg,
+      CellStatus.sunk    => AppColors.cellSunkBg,
     };
   }
 
   Color _borderColor() {
-    if (isActiveCell) return Colors.blue[500]!;
-    if (isInterestCell) return Colors.amber[700]!;
+    if (isActiveCell) return AppColors.cellHoverBorder;
+    if (isInterestCell) return AppColors.accentMid;
     return switch (cell.status) {
       CellStatus.defaultValue =>
-        (isRowPath || isColPath) ? Colors.blue[300]! : Colors.blue[200]!,
-      CellStatus.hit => Colors.red[600]!,
-      CellStatus.miss => Colors.grey[400]!,
-      CellStatus.blocked => Colors.grey[500]!,
+        _isPath ? AppColors.cellPathBorder : AppColors.cellDefaultBorder,
+      CellStatus.hit     => AppColors.cellHitBorder,
+      CellStatus.miss    => AppColors.cellMissBorder,
+      CellStatus.blocked => AppColors.cellBlockedBorder,
+      CellStatus.sunk    => AppColors.cellSunkBorder,
     };
   }
 
+  List<BoxShadow> _shadows() {
+    if (isActiveCell) {
+      return const [BoxShadow(color: AppColors.cellHoverGlow, blurRadius: 8)];
+    }
+    if (isInterestCell) {
+      return const [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)];
+    }
+    if (cell.status == CellStatus.sunk) {
+      // Matches HTML: box-shadow: 0 0 0 2.5px rgba(160,30,20,.22)
+      return const [BoxShadow(color: Color(0x37A01E14), spreadRadius: 2.5)];
+    }
+    return const [];
+  }
+
   Widget? _content() {
-    final iconSize = fontSize < 11 ? 16.0 : 20.0;
     return switch (cell.status) {
       CellStatus.defaultValue => null,
-      CellStatus.hit =>
-        Icon(Icons.gps_fixed, size: iconSize, color: Colors.white),
-      CellStatus.miss =>
-        Icon(Icons.close, size: iconSize, color: Colors.grey[600]),
-      CellStatus.blocked =>
-        Icon(Icons.block, size: iconSize, color: Colors.grey[700]),
+      CellStatus.hit || CellStatus.sunk => const FractionallySizedBox(
+        widthFactor: 0.52,
+        heightFactor: 0.52,
+        child: CustomPaint(painter: _CrosshairPainter()),
+      ),
+      CellStatus.miss => const FractionallySizedBox(
+        widthFactor: 0.50,
+        heightFactor: 0.50,
+        child: CustomPaint(painter: _MissPainter()),
+      ),
+      CellStatus.blocked => null,
     };
   }
+}
+
+// ---------------------------------------------------------------------------
+// × icon — miss cell indicator; symbol-first, not color-first.
+// ---------------------------------------------------------------------------
+
+class _MissPainter extends CustomPainter {
+  const _MissPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.cellMissX
+      ..strokeWidth = size.width * 0.13
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final p = size.width * 0.18;
+    canvas.drawLine(Offset(p, p), Offset(size.width - p, size.height - p), paint);
+    canvas.drawLine(Offset(size.width - p, p), Offset(p, size.height - p), paint);
+  }
+
+  @override
+  bool shouldRepaint(_MissPainter old) => false;
+}
+
+// ---------------------------------------------------------------------------
+// Crosshair icon — used for hit and sunk cells.
+// Mirrors the SVG symbol in Word Battleship v2.html:
+//   4 line segments + circle, 20×20 viewBox, white stroke.
+// ---------------------------------------------------------------------------
+
+class _CrosshairPainter extends CustomPainter {
+  const _CrosshairPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xD9FFFFFF) // rgba(255,255,255,.85)
+      ..strokeWidth = size.width * 0.0825 // proportional to 1.65/20
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final f = size.width / 20; // scale factor from 20×20 viewBox
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+
+    // Vertical segments
+    canvas.drawLine(Offset(cx, 2.5 * f), Offset(cx, 7.0 * f), paint);
+    canvas.drawLine(Offset(cx, 13.0 * f), Offset(cx, 17.5 * f), paint);
+    // Horizontal segments
+    canvas.drawLine(Offset(2.5 * f, cy), Offset(7.0 * f, cy), paint);
+    canvas.drawLine(Offset(13.0 * f, cy), Offset(17.5 * f, cy), paint);
+    // Center circle
+    canvas.drawCircle(Offset(cx, cy), 3.2 * f, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CrosshairPainter oldDelegate) => false;
 }
 
 // ---------------------------------------------------------------------------
