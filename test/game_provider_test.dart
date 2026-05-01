@@ -134,10 +134,19 @@ void main() {
     });
 
     test('retains the full move log with newest entries first', () {
-      final initial = container.read(gameProvider);
-      final cells = initial.board.expand((row) => row).toList();
+      final expectedMoves = <MoveLogEntry>[];
 
-      for (final cell in cells.take(SoloGameState.moveLogLimit + 2)) {
+      while (container.read(gameProvider).movesCount <=
+          SoloGameState.moveLogLimit) {
+        final current = container.read(gameProvider);
+        final cell = current.board
+            .expand((row) => row)
+            .firstWhere((cell) => cell.status == CellStatus.defaultValue);
+        expectedMoves.insert(
+          0,
+          MoveLogEntry(phrase: cell.word, isHit: cell.hasShip),
+        );
+
         container
             .read(gameProvider.notifier)
             .handleCellClick(cell.row, cell.col);
@@ -146,7 +155,11 @@ void main() {
       final state = container.read(gameProvider);
       expect(state.lastMoves, hasLength(state.movesCount));
       expect(state.movesCount, greaterThan(SoloGameState.moveLogLimit));
-      expect(state.lastMoves.first.phrase, state.lastMoveMessage?.split(': ').last);
+      expect(state.lastMoves, expectedMoves);
+      expect(
+        state.lastMoves.first.phrase,
+        state.lastMoveMessage?.split(': ').last,
+      );
     });
 
     test('creates victory summary when all ships are sunk', () {
