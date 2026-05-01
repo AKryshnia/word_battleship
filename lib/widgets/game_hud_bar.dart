@@ -100,7 +100,7 @@ class GameHudBar extends StatelessWidget {
                 onSelected: onStyleChange,
               ),
               const SizedBox(width: 6),
-              _NewGameButton(onPressed: onReset),
+              SizedBox(height: 32, child: _NewGameButton(onPressed: onReset)),
             ],
           ),
         ],
@@ -126,24 +126,28 @@ class GameHudBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Row 1: brand · pipe · status · button
+          // Tighter padding + a FittedBox on the brand so the full "WordBattle"
+          // word always fits next to the picker / new-game cluster on narrow
+          // shells, instead of clipping at the last few characters.
           SizedBox(
             height: 42,
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.shellPadH,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  Flexible(
-                    fit: FlexFit.loose,
+                  Expanded(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Flexible(
                           fit: FlexFit.loose,
-                          child: _brandText(),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: _brandText(),
+                          ),
                         ),
-                        _Pipe(horizontalMargin: 12),
+                        _Pipe(horizontalMargin: 8),
                         Flexible(
                           fit: FlexFit.loose,
                           child: _StatusRow(isFinished: isFinished),
@@ -151,7 +155,7 @@ class GameHudBar extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   _StylePickerButton(
                     current: currentStyle,
                     onSelected: onStyleChange,
@@ -383,7 +387,7 @@ class _StylePickerButton extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: const Icon(
-          Icons.palette_outlined,
+          Icons.style_outlined,
           size: 17,
           color: AppColors.text2,
         ),
