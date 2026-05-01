@@ -133,22 +133,20 @@ void main() {
       );
     });
 
-    test('keeps only the latest move log entries', () {
+    test('retains the full move log with newest entries first', () {
       final initial = container.read(gameProvider);
-      final cells = initial.board.expand((row) => row);
+      final cells = initial.board.expand((row) => row).toList();
 
-      for (final cell in cells) {
+      for (final cell in cells.take(SoloGameState.moveLogLimit + 2)) {
         container
             .read(gameProvider.notifier)
             .handleCellClick(cell.row, cell.col);
-        if (container.read(gameProvider).movesCount >
-            SoloGameState.moveLogLimit + 1) {
-          break;
-        }
       }
 
       final state = container.read(gameProvider);
-      expect(state.lastMoves, hasLength(SoloGameState.moveLogLimit));
+      expect(state.lastMoves, hasLength(state.movesCount));
+      expect(state.movesCount, greaterThan(SoloGameState.moveLogLimit));
+      expect(state.lastMoves.first.phrase, state.lastMoveMessage?.split(': ').last);
     });
 
     test('creates victory summary when all ships are sunk', () {

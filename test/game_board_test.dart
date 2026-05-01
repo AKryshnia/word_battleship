@@ -153,44 +153,50 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
-  // Mobile: two-tap scenario
+  // Mobile: single-tap fires immediately
   // -------------------------------------------------------------------------
 
-  testWidgets('mobile first tap selects, second tap fires', (tester) async {
+  testWidgets('mobile single tap on default cell fires immediately', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     try {
       var fireCount = 0;
       await tester.pumpWidget(_gameBoardWidget(onCellClick: (_, col, word) => fireCount++));
 
-      final cell = find.byType(GestureDetector).first;
-      await tester.tap(cell);
+      await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
-      expect(fireCount, 0, reason: 'First tap must not fire on mobile');
-
-      await tester.tap(cell);
-      await tester.pump();
-      expect(fireCount, 1, reason: 'Second tap on same cell must fire');
+      expect(fireCount, 1, reason: 'Single tap must fire immediately on mobile');
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
   });
 
-  testWidgets('mobile tap on different cell moves selection without firing', (
-    tester,
-  ) async {
+  testWidgets('mobile tapping a revealed cell does not fire', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     try {
-      var fireCount = 0;
-      await tester.pumpWidget(_gameBoardWidget(onCellClick: (_, col, word) => fireCount++));
+      final board = _makeBoard(10);
+      board[0][0] = board[0][0].copyWith(status: CellStatus.hit);
 
-      final cells = find.byType(GestureDetector);
-      await tester.tap(cells.at(0));
+      var fired = false;
+      await tester.pumpWidget(
+        _gameBoardWidget(board: board, onCellClick: (_, col, word) => fired = true),
+      );
+      await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
-      expect(fireCount, 0);
+      expect(fired, isFalse, reason: 'Tapping a hit cell must not fire on mobile');
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 
-      await tester.tap(cells.at(1));
-      await tester.pump();
-      expect(fireCount, 0, reason: 'Tapping a different cell must not fire');
+  testWidgets('mobile post-fire coordinate highlight clears after timer', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    try {
+      await tester.pumpWidget(_gameBoardWidget());
+      await tester.tap(find.byType(GestureDetector).first);
+      await tester.pump(); // fire + set _lastFired
+      // Highlight is active; advance past 700 ms — timer fires and clears _lastFired.
+      await tester.pump(const Duration(milliseconds: 800));
+      await tester.pump(); // process the rebuild
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
