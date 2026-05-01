@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:word_battleship/models/models.dart';
+import 'package:word_battleship/theme/board_style.dart';
 import 'package:word_battleship/widgets/game_board.dart';
 
 // ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ Widget _gameBoardWidget({List<List<Cell>>? board, void Function(int, int, String
           rowAdjectives: _testAdj,
           interestCells: const {},
           onCellClick: onCellClick ?? (a, b, c) {},
+          style: BoardStylePresets.of(BoardStylePresets.defaultStyle),
         ),
       ),
     ),

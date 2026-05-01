@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../providers/game_provider.dart';
 import '../theme/app_theme.dart';
+import '../theme/board_style.dart';
 import '../widgets/game_shell.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -14,6 +15,12 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
+  // Visual board style — held in screen state so swapping it does not touch
+  // game logic or trigger any provider rebuild. Defaults to Modern (Ink on
+  // Paper); persistence is intentionally not added here since the project's
+  // existing storage layer is scoped to game state, not preferences.
+  BoardVisualStyle _boardStyle = BoardStylePresets.defaultStyle;
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +49,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return LayoutProfile.wide;
   }
 
+  void _onStyleChange(BoardVisualStyle style) {
+    if (style == _boardStyle) return;
+    setState(() => _boardStyle = style);
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
@@ -68,6 +80,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           notifier.resetGame(_layoutProfile(context)),
                       onCellClick: (row, col) =>
                           notifier.handleCellClick(row, col),
+                      boardStyle: _boardStyle,
+                      onStyleChange: _onStyleChange,
                     ),
                   ),
                 ),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../theme/board_style.dart';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -17,6 +18,7 @@ class GameBoard extends StatefulWidget {
   final List<AdjectiveEntry> rowAdjectives;
   final Set<BoardPosition> interestCells;
   final Function(int row, int col, String word) onCellClick;
+  final BoardStyleConfig style;
 
   const GameBoard({
     super.key,
@@ -25,6 +27,7 @@ class GameBoard extends StatefulWidget {
     required this.rowAdjectives,
     required this.interestCells,
     required this.onCellClick,
+    required this.style,
   });
 
   @override
@@ -138,6 +141,7 @@ class _GameBoardState extends State<GameBoard> {
 
   Widget _buildGrid(BuildContext context, BoxConstraints constraints) {
     final boardSize = widget.board.length;
+    final style = widget.style;
 
     // --- layout constants derived from available space + actual vocabulary ---
     final isNarrow = constraints.maxWidth < 460;
@@ -193,6 +197,7 @@ class _GameBoardState extends State<GameBoard> {
                       axisFs: axisFs,
                       activeIndex: activeCol,
                       headerHeight: columnHeaderHeight,
+                      style: style,
                     ),
                   ),
                 ],
@@ -211,6 +216,7 @@ class _GameBoardState extends State<GameBoard> {
                     gap: cellGap,
                     axisFs: axisFs,
                     activeIndex: activeRow,
+                    style: style,
                   ),
                 ),
                 const SizedBox(width: axisGap),
@@ -246,6 +252,7 @@ class _GameBoardState extends State<GameBoard> {
                             isActiveCell: _isActiveCell(row, col),
                             isRowPath: _isRowPath(row, col),
                             isColPath: _isColPath(row, col),
+                            style: style,
                           ),
                         ),
                       );
@@ -272,6 +279,7 @@ class _ColumnHeaderRow extends StatelessWidget {
   final double axisFs;
   final int? activeIndex;
   final double headerHeight;
+  final BoardStyleConfig style;
 
   const _ColumnHeaderRow({
     required this.nouns,
@@ -280,6 +288,7 @@ class _ColumnHeaderRow extends StatelessWidget {
     required this.axisFs,
     required this.activeIndex,
     required this.headerHeight,
+    required this.style,
   });
 
   @override
@@ -294,6 +303,7 @@ class _ColumnHeaderRow extends StatelessWidget {
               word: nouns[i].word,
               isActive: i == activeIndex,
               axisFs: axisFs,
+              style: style,
             ),
           ),
           if (i < nouns.length - 1) SizedBox(width: gap),
@@ -307,29 +317,33 @@ class _NounLabel extends StatelessWidget {
   final String word;
   final bool isActive;
   final double axisFs;
+  final BoardStyleConfig style;
 
   const _NounLabel({
     required this.word,
     required this.isActive,
     required this.axisFs,
+    required this.style,
   });
 
   @override
   Widget build(BuildContext context) {
-    final style = (isActive
-            ? AppTextStyles.axisLabelActive
-            : AppTextStyles.axisLabel)
-        .copyWith(fontSize: axisFs, letterSpacing: 0.025 * axisFs);
+    final base = isActive ? style.axisLabelActive : style.axisLabel;
+    final textStyle = base.copyWith(
+      fontSize: axisFs,
+      letterSpacing: (style.axisUppercase ? 0.08 : 0.025) * axisFs,
+    );
+    final display = style.axisUppercase ? word.toUpperCase() : word;
 
     return Center(
       child: RotatedBox(
         // quarterTurns: 3 → 90° CCW → text reads bottom-to-top (tilt head left)
         quarterTurns: 3,
         child: AnimatedDefaultTextStyle(
-          style: style,
+          style: textStyle,
           duration: const Duration(milliseconds: 100),
           child: Text(
-            word,
+            display,
             overflow: TextOverflow.visible,
             softWrap: false,
           ),
@@ -349,6 +363,7 @@ class _RowHeaderColumn extends StatelessWidget {
   final double gap;
   final double axisFs;
   final int? activeIndex;
+  final BoardStyleConfig style;
 
   const _RowHeaderColumn({
     required this.adjectives,
@@ -356,6 +371,7 @@ class _RowHeaderColumn extends StatelessWidget {
     required this.gap,
     required this.axisFs,
     required this.activeIndex,
+    required this.style,
   });
 
   @override
@@ -369,6 +385,7 @@ class _RowHeaderColumn extends StatelessWidget {
               word: adjectives[i].base,
               isActive: i == activeIndex,
               axisFs: axisFs,
+              style: style,
             ),
           ),
           if (i < adjectives.length - 1) SizedBox(height: gap),
@@ -382,29 +399,33 @@ class _AdjectiveLabel extends StatelessWidget {
   final String word;
   final bool isActive;
   final double axisFs;
+  final BoardStyleConfig style;
 
   const _AdjectiveLabel({
     required this.word,
     required this.isActive,
     required this.axisFs,
+    required this.style,
   });
 
   @override
   Widget build(BuildContext context) {
-    final style = (isActive
-            ? AppTextStyles.axisLabelActive
-            : AppTextStyles.axisLabel)
-        .copyWith(fontSize: axisFs, letterSpacing: 0.025 * axisFs);
+    final base = isActive ? style.axisLabelActive : style.axisLabel;
+    final textStyle = base.copyWith(
+      fontSize: axisFs,
+      letterSpacing: (style.axisUppercase ? 0.08 : 0.025) * axisFs,
+    );
+    final display = style.axisUppercase ? word.toUpperCase() : word;
 
     return Align(
       alignment: Alignment.centerRight,
       child: Padding(
         padding: const EdgeInsets.only(right: 8),
         child: AnimatedDefaultTextStyle(
-          style: style,
+          style: textStyle,
           duration: const Duration(milliseconds: 100),
           child: Text(
-            word,
+            display,
             maxLines: 1,
             overflow: TextOverflow.clip,
             softWrap: false,
@@ -417,6 +438,9 @@ class _AdjectiveLabel extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 // Cell widget
+//
+// Reads its full visual from the active BoardStyleConfig — no inline color
+// switches. Hit / miss icons come from the style's CellIconKind dispatch.
 // ---------------------------------------------------------------------------
 
 class _CellWidget extends StatelessWidget {
@@ -425,6 +449,7 @@ class _CellWidget extends StatelessWidget {
   final bool isActiveCell;
   final bool isRowPath;
   final bool isColPath;
+  final BoardStyleConfig style;
 
   const _CellWidget({
     required this.cell,
@@ -432,142 +457,93 @@ class _CellWidget extends StatelessWidget {
     required this.isActiveCell,
     required this.isRowPath,
     required this.isColPath,
+    required this.style,
   });
 
   bool get _isPath =>
       (isRowPath || isColPath) && cell.status == CellStatus.defaultValue;
 
+  CellVisual _resolveVisual() {
+    if (isActiveCell) return style.cellHover;
+    return switch (cell.status) {
+      CellStatus.defaultValue => _isPath ? style.cellPath : style.cellDefault,
+      CellStatus.hit => style.cellHit,
+      CellStatus.sunk => style.cellSunk,
+      CellStatus.miss => style.cellMiss,
+      CellStatus.blocked => style.cellBlocked,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visual = _resolveVisual();
+    // Interest cells get a subtle accent overlay regardless of theme — keeps
+    // the UX "hint" affordance working consistently across all 4 styles.
+    final isInterestOverlay =
+        isInterestCell && cell.status == CellStatus.defaultValue && !isActiveCell;
+
+    final radius = BorderRadius.circular(AppDimensions.radiusCell);
+
     return Container(
       decoration: BoxDecoration(
-        color: _cellColor(),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusCell),
+        color: isInterestOverlay ? AppColors.accentFaint : visual.background,
+        borderRadius: radius,
         border: Border.all(
-          color: _borderColor(),
-          width: isActiveCell ? 1.5 : 1.0,
+          color: isInterestOverlay ? AppColors.accentMid : visual.borderColor,
+          width: visual.borderWidth,
         ),
-        boxShadow: _shadows(),
+        boxShadow: isInterestOverlay
+            ? const [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)]
+            : visual.shadows,
       ),
-      child: Center(child: _content()),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Optional diagonal hatch (Modern blocked) — clipped to the cell's
+          // rounded corners so it does not paint over the border.
+          if (!isInterestOverlay && visual.hatchColor != null)
+            ClipRRect(
+              borderRadius: radius,
+              child: CustomPaint(
+                painter: DiagonalHatchPainter(color: visual.hatchColor!),
+              ),
+            ),
+          Center(child: _content()),
+        ],
+      ),
     );
   }
 
-  Color _cellColor() {
-    if (isActiveCell) return AppColors.cellHoverBg;
-    if (isInterestCell) return AppColors.accentFaint;
-    return switch (cell.status) {
-      CellStatus.defaultValue =>
-        _isPath ? AppColors.cellPathBg : AppColors.cellDefaultBg,
-      CellStatus.hit     => AppColors.cellHitBg,
-      CellStatus.miss    => AppColors.cellMissBg,
-      CellStatus.blocked => AppColors.cellBlockedBg,
-      CellStatus.sunk    => AppColors.cellSunkBg,
-    };
-  }
-
-  Color _borderColor() {
-    if (isActiveCell) return AppColors.cellHoverBorder;
-    if (isInterestCell) return AppColors.accentMid;
-    return switch (cell.status) {
-      CellStatus.defaultValue =>
-        _isPath ? AppColors.cellPathBorder : AppColors.cellDefaultBorder,
-      CellStatus.hit     => AppColors.cellHitBorder,
-      CellStatus.miss    => AppColors.cellMissBorder,
-      CellStatus.blocked => AppColors.cellBlockedBorder,
-      CellStatus.sunk    => AppColors.cellSunkBorder,
-    };
-  }
-
-  List<BoxShadow> _shadows() {
-    if (isActiveCell) {
-      return const [BoxShadow(color: AppColors.cellHoverGlow, blurRadius: 8)];
-    }
-    if (isInterestCell) {
-      return const [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)];
-    }
-    if (cell.status == CellStatus.sunk) {
-      // Matches HTML: box-shadow: 0 0 0 2.5px rgba(160,30,20,.22)
-      return const [BoxShadow(color: Color(0x37A01E14), spreadRadius: 2.5)];
-    }
-    return const [];
-  }
-
   Widget? _content() {
-    return switch (cell.status) {
-      CellStatus.defaultValue => null,
-      CellStatus.hit || CellStatus.sunk => const FractionallySizedBox(
-        widthFactor: 0.52,
-        heightFactor: 0.52,
-        child: CustomPaint(painter: _CrosshairPainter()),
-      ),
-      CellStatus.miss => const FractionallySizedBox(
-        widthFactor: 0.50,
-        heightFactor: 0.50,
-        child: CustomPaint(painter: _MissPainter()),
-      ),
-      CellStatus.blocked => null,
-    };
+    switch (cell.status) {
+      case CellStatus.defaultValue:
+      case CellStatus.blocked:
+        return null;
+      case CellStatus.hit:
+      case CellStatus.sunk:
+        return FractionallySizedBox(
+          widthFactor: iconFractionFor(style.hitIcon),
+          heightFactor: iconFractionFor(style.hitIcon),
+          child: CustomPaint(
+            painter: CellIconPainter(
+              kind: style.hitIcon,
+              color: style.hitIconColor,
+            ),
+          ),
+        );
+      case CellStatus.miss:
+        return FractionallySizedBox(
+          widthFactor: iconFractionFor(style.missIcon),
+          heightFactor: iconFractionFor(style.missIcon),
+          child: CustomPaint(
+            painter: CellIconPainter(
+              kind: style.missIcon,
+              color: style.missIconColor,
+            ),
+          ),
+        );
+    }
   }
-}
-
-// ---------------------------------------------------------------------------
-// × icon — miss cell indicator; symbol-first, not color-first.
-// ---------------------------------------------------------------------------
-
-class _MissPainter extends CustomPainter {
-  const _MissPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.cellMissX
-      ..strokeWidth = size.width * 0.13
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final p = size.width * 0.18;
-    canvas.drawLine(Offset(p, p), Offset(size.width - p, size.height - p), paint);
-    canvas.drawLine(Offset(size.width - p, p), Offset(p, size.height - p), paint);
-  }
-
-  @override
-  bool shouldRepaint(_MissPainter old) => false;
-}
-
-// ---------------------------------------------------------------------------
-// Crosshair icon — used for hit and sunk cells.
-// Mirrors the SVG symbol in Word Battleship v2.html:
-//   4 line segments + circle, 20×20 viewBox, white stroke.
-// ---------------------------------------------------------------------------
-
-class _CrosshairPainter extends CustomPainter {
-  const _CrosshairPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xD9FFFFFF) // rgba(255,255,255,.85)
-      ..strokeWidth = size.width * 0.0825 // proportional to 1.65/20
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final f = size.width / 20; // scale factor from 20×20 viewBox
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    // Vertical segments
-    canvas.drawLine(Offset(cx, 2.5 * f), Offset(cx, 7.0 * f), paint);
-    canvas.drawLine(Offset(cx, 13.0 * f), Offset(cx, 17.5 * f), paint);
-    // Horizontal segments
-    canvas.drawLine(Offset(2.5 * f, cy), Offset(7.0 * f, cy), paint);
-    canvas.drawLine(Offset(13.0 * f, cy), Offset(17.5 * f, cy), paint);
-    // Center circle
-    canvas.drawCircle(Offset(cx, cy), 3.2 * f, paint);
-  }
-
-  @override
-  bool shouldRepaint(_CrosshairPainter oldDelegate) => false;
 }
 
 // ---------------------------------------------------------------------------
