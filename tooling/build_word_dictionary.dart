@@ -133,6 +133,14 @@ const _objectNouns = {
   'машина',
 };
 
+/// Manual gender corrections for nouns where the OpenRussian source CSV
+/// contains incorrect data. Applied after CSV parsing so the fix survives
+/// future regenerations.
+const _nounGenderOverrides = <String, String>{
+  // Source CSV has gender='m'; "рада" (council, cf. Верховна рада) is feminine.
+  'рада': 'WordGender.feminine',
+};
+
 const _foodNouns = {
   'хлеб',
   'сыр',
@@ -245,7 +253,7 @@ List<_Noun> _readNouns(File file) {
     if (_blockedNouns.contains(word)) continue;
     if (!seen.add(word)) continue;
 
-    result.add(_Noun(word, gender, _nounTags(word)));
+    result.add(_Noun(word, _nounGenderOverrides[word] ?? gender, _nounTags(word)));
     if (result.length == nounLimit) break;
   }
 
