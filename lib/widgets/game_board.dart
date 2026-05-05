@@ -105,12 +105,9 @@ class _GameBoardState extends State<GameBoard> {
     setState(() {
       _lastFired = BoardPosition(row: row, col: col);
     });
-    _postClickTimer = Timer(
-      const Duration(milliseconds: _postClickMs),
-      () {
-        if (mounted) setState(() => _lastFired = null);
-      },
-    );
+    _postClickTimer = Timer(const Duration(milliseconds: _postClickMs), () {
+      if (mounted) setState(() => _lastFired = null);
+    });
   }
 
   // ------ highlight helpers ------
@@ -147,7 +144,9 @@ class _GameBoardState extends State<GameBoard> {
 
     // --- layout constants derived from available space + actual vocabulary ---
     final isNarrow = constraints.maxWidth < 460;
-    final axisFs = isNarrow ? AppDimensions.axisFsMd : AppDimensions.axisFs;
+    final axisFs =
+        (isNarrow ? AppDimensions.axisFsMd : AppDimensions.axisFs) *
+        style.axisFontScale;
 
     // Manrope geometric sans at this size: ~0.65 px per character width.
     final charW = axisFs * 0.65;
@@ -269,4 +268,3 @@ class _GameBoardState extends State<GameBoard> {
     );
   }
 }
-

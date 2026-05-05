@@ -24,18 +24,18 @@ enum BoardVisualStyle {
   gridScan;
 
   String get label => switch (this) {
-        BoardVisualStyle.modernInk => 'Modern — Ink on Paper',
-        BoardVisualStyle.navalRetro => 'Retro — Naval Chart',
-        BoardVisualStyle.candyFluffy => 'Fluffy — Candy Tiles',
-        BoardVisualStyle.gridScan => 'Futuristic — Grid Scan',
-      };
+    BoardVisualStyle.modernInk => 'Modern — Ink on Paper',
+    BoardVisualStyle.navalRetro => 'Retro — Naval Chart',
+    BoardVisualStyle.candyFluffy => 'Fluffy — Candy Tiles',
+    BoardVisualStyle.gridScan => 'Futuristic — Grid Scan',
+  };
 
   String get shortLabel => switch (this) {
-        BoardVisualStyle.modernInk => 'Modern',
-        BoardVisualStyle.navalRetro => 'Retro',
-        BoardVisualStyle.candyFluffy => 'Fluffy',
-        BoardVisualStyle.gridScan => 'Futuristic',
-      };
+    BoardVisualStyle.modernInk => 'Modern',
+    BoardVisualStyle.navalRetro => 'Retro',
+    BoardVisualStyle.candyFluffy => 'Fluffy',
+    BoardVisualStyle.gridScan => 'Futuristic',
+  };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -109,6 +109,7 @@ class BoardStyleConfig {
   // Axis labels (rotated nouns + horizontal adjectives)
   final TextStyle axisLabel;
   final TextStyle axisLabelActive;
+  final double axisFontScale;
 
   // Whether axis labels should be uppercased (Futuristic).
   final bool axisUppercase;
@@ -131,6 +132,7 @@ class BoardStyleConfig {
     required this.missIconColor,
     required this.axisLabel,
     required this.axisLabelActive,
+    this.axisFontScale = 1.0,
     required this.axisUppercase,
   });
 }
@@ -184,7 +186,13 @@ class BoardStylePresets {
       background: Color(0xFFFFF0C8),
       borderColor: Color(0xFFCC8A0A),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x2EA06400), blurRadius: 14, offset: Offset(0, 2))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x2EA06400),
+          blurRadius: 14,
+          offset: Offset(0, 2),
+        ),
+      ],
     ),
     cellHit: const CellVisual(
       background: Color(0xFF111111),
@@ -216,15 +224,16 @@ class BoardStylePresets {
     axisLabel: GoogleFonts.manrope(
       fontSize: AppDimensions.axisFs,
       fontWeight: FontWeight.w500,
-      color: const Color(0xFFB0A090),
+      color: const Color(0xFF8F7E69),
       letterSpacing: 0.025 * AppDimensions.axisFs,
     ),
     axisLabelActive: GoogleFonts.manrope(
       fontSize: AppDimensions.axisFs,
       fontWeight: FontWeight.w700,
-      color: const Color(0xFFB06010),
+      color: const Color(0xFFC06A14),
       letterSpacing: 0.025 * AppDimensions.axisFs,
     ),
+    axisFontScale: 1.1,
     axisUppercase: false,
   );
 
@@ -258,7 +267,9 @@ class BoardStylePresets {
       background: Color(0xFFB04008),
       borderColor: Color(0xFFE05010),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x80F06414), blurRadius: 12, spreadRadius: 1)],
+      shadows: [
+        BoxShadow(color: Color(0x80F06414), blurRadius: 12, spreadRadius: 1),
+      ],
     ),
     cellMiss: const CellVisual(
       background: Color(0xFFD0E8F8),
@@ -297,37 +308,73 @@ class BoardStylePresets {
       background: Color(0xFFFFFFFF),
       borderColor: Color(0xFFFFD0E8),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x12FF508C), blurRadius: 10, offset: Offset(0, 3))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x12FF508C),
+          blurRadius: 10,
+          offset: Offset(0, 3),
+        ),
+      ],
     ),
     cellPath: const CellVisual(
       background: Color(0xFFFFE8F4),
       borderColor: Color(0xFFFFAAD4),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x1AFF5096), blurRadius: 8, offset: Offset(0, 2))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x1AFF5096),
+          blurRadius: 8,
+          offset: Offset(0, 2),
+        ),
+      ],
     ),
     cellHover: const CellVisual(
       background: Color(0xFFFFC8E8),
       borderColor: Color(0xFFFF60BE),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x52FF28A0), blurRadius: 16, offset: Offset(0, 4))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x52FF28A0),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
+      ],
     ),
     cellHit: const CellVisual(
       background: Color(0xFFFF3CAB),
       borderColor: Color(0xFFE800A0),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x66FF3CAA), blurRadius: 14, offset: Offset(0, 3))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x66FF3CAA),
+          blurRadius: 14,
+          offset: Offset(0, 3),
+        ),
+      ],
     ),
     cellSunk: const CellVisual(
       background: Color(0xFFE0008C),
       borderColor: Color(0xFFB00060),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x80E0008C), blurRadius: 16, offset: Offset(0, 4))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x80E0008C),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
+      ],
     ),
     cellMiss: const CellVisual(
       background: Color(0xFFB8E4FF),
       borderColor: Color(0xFF80C4F8),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x263C96FF), blurRadius: 8, offset: Offset(0, 2))],
+      shadows: [
+        BoxShadow(
+          color: Color(0x263C96FF),
+          blurRadius: 8,
+          offset: Offset(0, 2),
+        ),
+      ],
     ),
     cellBlocked: const CellVisual(
       background: Color(0xFFEDE8FF),
@@ -383,7 +430,9 @@ class BoardStylePresets {
       background: Color(0xFF1A0008),
       borderColor: Color(0xFFFF1480),
       borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x99FF0066), blurRadius: 22, spreadRadius: 1)],
+      shadows: [
+        BoxShadow(color: Color(0x99FF0066), blurRadius: 22, spreadRadius: 1),
+      ],
     ),
     cellMiss: const CellVisual(
       background: Color(0xFF000000),
@@ -412,4 +461,3 @@ class BoardStylePresets {
     axisUppercase: true,
   );
 }
-

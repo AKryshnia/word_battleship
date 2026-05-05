@@ -442,7 +442,7 @@ const localNouns = <NounEntry>[
   NounEntry(word: 'покой', gender: WordGender.masculine, tags: {'general'}),
   NounEntry(word: 'шутка', gender: WordGender.feminine, tags: {'general'}),
   NounEntry(word: 'автобус', gender: WordGender.masculine, tags: {'general'}),
-  NounEntry(word: 'рада', gender: WordGender.masculine, tags: {'general'}),
+  NounEntry(word: 'рада', gender: WordGender.feminine, tags: {'general'}),
   NounEntry(word: 'вариант', gender: WordGender.masculine, tags: {'general'}),
   NounEntry(word: 'дыхание', gender: WordGender.neuter, tags: {'general'}),
   NounEntry(word: 'организм', gender: WordGender.masculine, tags: {'general'}),

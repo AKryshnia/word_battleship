@@ -101,7 +101,10 @@ class GameShell extends StatelessWidget {
           targetGap,
         );
         final boardTargetH =
-            _estimateBoardContentHeight(constraints.maxWidth - pad * 2) +
+            _estimateBoardContentHeight(
+              contentWidth: constraints.maxWidth - pad * 2,
+              styleConfig: styleConfig,
+            ) +
             pad * 2;
         final maxBoardH =
             constraints.maxHeight - AppDimensions.moveLogBarH - gap;
@@ -116,9 +119,9 @@ class GameShell extends StatelessWidget {
         const layoutSafety = 2.0;
         final availableForLog =
             (constraints.maxHeight - boardH - gap - layoutSafety).clamp(
-          AppDimensions.moveLogBarH,
-          constraints.maxHeight,
-        );
+              AppDimensions.moveLogBarH,
+              constraints.maxHeight,
+            );
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -128,10 +131,7 @@ class GameShell extends StatelessWidget {
               child: _buildBoardArea(styleConfig: styleConfig, pad: pad),
             ),
             Container(height: gap, color: styleConfig.boardBackground),
-            MoveLogBar(
-              moves: gameState.lastMoves,
-              maxHeight: availableForLog,
-            ),
+            MoveLogBar(moves: gameState.lastMoves, maxHeight: availableForLog),
             Expanded(child: Container(color: AppColors.surface)),
           ],
         );
@@ -178,7 +178,10 @@ class GameShell extends StatelessWidget {
     );
   }
 
-  double _estimateBoardContentHeight(double contentWidth) {
+  double _estimateBoardContentHeight({
+    required double contentWidth,
+    required BoardStyleConfig styleConfig,
+  }) {
     final boardSize = gameState.board.length;
     final maxNounLen = gameState.columnNouns.isEmpty
         ? 5
@@ -193,8 +196,8 @@ class GameShell extends StatelessWidget {
 
     const axisGap = 4.0;
     const cellGap = AppDimensions.cellGap;
-    const axisFs = AppDimensions.axisFsMd;
-    const charW = axisFs * 0.65;
+    final axisFs = AppDimensions.axisFsMd * styleConfig.axisFontScale;
+    final charW = axisFs * 0.65;
     final columnHeaderH = (maxNounLen * charW + 20).clamp(40.0, 160.0);
     final rowHeaderW = (maxAdjLen * charW + 24).clamp(64.0, 180.0);
     final maxGridW = contentWidth - rowHeaderW - axisGap;
