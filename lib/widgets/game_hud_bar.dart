@@ -331,49 +331,61 @@ class _HudStatItem extends StatelessWidget {
 // entry applies the style immediately via [onSelected].
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _StylePickerButton extends StatelessWidget {
+class _StylePickerButton extends StatefulWidget {
   final BoardVisualStyle current;
   final ValueChanged<BoardVisualStyle> onSelected;
 
   const _StylePickerButton({required this.current, required this.onSelected});
 
   @override
+  State<_StylePickerButton> createState() => _StylePickerButtonState();
+}
+
+class _StylePickerButtonState extends State<_StylePickerButton> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<BoardVisualStyle>(
-      tooltip: 'Стиль поля',
-      initialValue: current,
-      onSelected: onSelected,
-      offset: const Offset(0, 36),
-      position: PopupMenuPosition.under,
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      itemBuilder: (context) => [
-        for (final style in BoardVisualStyle.values)
-          PopupMenuItem<BoardVisualStyle>(
-            value: style,
-            height: 40,
-            child: _StyleMenuRow(
-              style: style,
-              isSelected: style == current,
-            ),
-          ),
-      ],
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: AppColors.surface2,
+    // default: brand accent #3FB6B0 — matches "Battle" in logo
+    // hover: ~75 % brightness of accent — visibly darker, still teal
+    final iconColor =
+        _hovered ? const Color(0xFF2A9490) : AppColors.accent;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: PopupMenuButton<BoardVisualStyle>(
+        tooltip: 'Стиль поля',
+        initialValue: widget.current,
+        onSelected: widget.onSelected,
+        offset: const Offset(0, 36),
+        position: PopupMenuPosition.under,
+        color: AppColors.surface,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-          border: Border.all(color: AppColors.borderSubtle),
+          side: const BorderSide(color: AppColors.border),
         ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.style_outlined,
-          size: 17,
-          color: AppColors.text2,
+        itemBuilder: (context) => [
+          for (final style in BoardVisualStyle.values)
+            PopupMenuItem<BoardVisualStyle>(
+              value: style,
+              height: 40,
+              child: _StyleMenuRow(
+                style: style,
+                isSelected: style == widget.current,
+              ),
+            ),
+        ],
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: AppColors.surface2,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+            border: Border.all(color: AppColors.borderSubtle),
+          ),
+          alignment: Alignment.center,
+          child: Icon(Icons.style_outlined, size: 17, color: iconColor),
         ),
       ),
     );
