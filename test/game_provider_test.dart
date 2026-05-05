@@ -57,6 +57,244 @@ void main() {
       );
     });
 
+    // ── Interest-cells orientation tests ─────────────────────────────────
+
+    test('two horizontal hits restrict interest to left/right of chain only', () {
+      final initial = container.read(gameProvider);
+
+      // Need a horizontal ship with ≥3 cells so two hits don't sink it.
+      final candidates = initial.ships.where((s) =>
+        s.cells.length >= 3 &&
+        s.cells.map((sc) => sc.row).toSet().length == 1,
+      ).toList();
+      if (candidates.isEmpty) return; // board has no such ship — skip
+
+      final ship = candidates.first;
+      final sorted = List<ShipCell>.from(ship.cells)
+        ..sort((a, b) => a.col.compareTo(b.col));
+      final row = sorted[0].row;
+      final col0 = sorted[0].col;
+      final col1 = sorted[1].col; // adjacent to col0
+
+      container.read(gameProvider.notifier).handleCellClick(row, col0);
+      container.read(gameProvider.notifier).handleCellClick(row, col1);
+
+      final state = container.read(gameProvider);
+      final interest = state.interestCells;
+      final boardRows = state.board.length;
+
+      // Cells ABOVE and BELOW every hit cell must NOT be in interest.
+      for (final hitCol in [col0, col1]) {
+        if (row > 0) {
+          expect(
+            interest.contains(BoardPosition(row: row - 1, col: hitCol)),
+            isFalse,
+            reason: 'Cell above ($row,$hitCol) should not be interesting '
+                'once orientation is known (horizontal)',
+          );
+        }
+        if (row < boardRows - 1) {
+          expect(
+            interest.contains(BoardPosition(row: row + 1, col: hitCol)),
+            isFalse,
+            reason: 'Cell below ($row,$hitCol) should not be interesting '
+                'once orientation is known (horizontal)',
+          );
+        }
+      }
+
+      // At least one of the horizontal ends (left / right) must be in interest
+      // if that end is a reachable default cell.
+      final board = state.board;
+      final boardCols = board[0].length;
+      final leftDefault =
+          col0 > 0 && board[row][col0 - 1].status == CellStatus.defaultValue;
+      final rightDefault = col1 < boardCols - 1 &&
+          board[row][col1 + 1].status == CellStatus.defaultValue;
+      if (leftDefault) {
+        expect(interest.contains(BoardPosition(row: row, col: col0 - 1)), isTrue,
+            reason: 'Left end of horizontal chain should be interesting');
+      }
+      if (rightDefault) {
+        expect(interest.contains(BoardPosition(row: row, col: col1 + 1)), isTrue,
+            reason: 'Right end of horizontal chain should be interesting');
+      }
+    });
+
+    test('two vertical hits restrict interest to top/bottom of chain only', () {
+      final initial = container.read(gameProvider);
+
+      // Need a vertical ship with ≥3 cells so two hits don't sink it.
+      final candidates = initial.ships.where((s) =>
+        s.cells.length >= 3 &&
+        s.cells.map((sc) => sc.col).toSet().length == 1,
+      ).toList();
+      if (candidates.isEmpty) return; // board has no such ship — skip
+
+      final ship = candidates.first;
+      final sorted = List<ShipCell>.from(ship.cells)
+        ..sort((a, b) => a.row.compareTo(b.row));
+      final col = sorted[0].col;
+      final row0 = sorted[0].row;
+      final row1 = sorted[1].row; // adjacent to row0
+
+      container.read(gameProvider.notifier).handleCellClick(row0, col);
+      container.read(gameProvider.notifier).handleCellClick(row1, col);
+
+      final state = container.read(gameProvider);
+      final interest = state.interestCells;
+      final boardCols = state.board[0].length;
+
+      // Cells to the LEFT and RIGHT of every hit cell must NOT be in interest.
+      for (final hitRow in [row0, row1]) {
+        if (col > 0) {
+          expect(
+            interest.contains(BoardPosition(row: hitRow, col: col - 1)),
+            isFalse,
+            reason: 'Cell left of ($hitRow,$col) should not be interesting '
+                'once orientation is known (vertical)',
+          );
+        }
+        if (col < boardCols - 1) {
+          expect(
+            interest.contains(BoardPosition(row: hitRow, col: col + 1)),
+            isFalse,
+            reason: 'Cell right of ($hitRow,$col) should not be interesting '
+                'once orientation is known (vertical)',
+          );
+        }
+      }
+
+      // At least one of the vertical ends (top / bottom) must be in interest
+      // if that end is a reachable default cell.
+      final board = state.board;
+      final boardRows = board.length;
+      final topDefault =
+          row0 > 0 && board[row0 - 1][col].status == CellStatus.defaultValue;
+      final bottomDefault = row1 < boardRows - 1 &&
+          board[row1 + 1][col].status == CellStatus.defaultValue;
+      if (topDefault) {
+        expect(interest.contains(BoardPosition(row: row0 - 1, col: col)), isTrue,
+            reason: 'Top end of vertical chain should be interesting');
+      }
+      if (bottomDefault) {
+        expect(interest.contains(BoardPosition(row: row1 + 1, col: col)), isTrue,
+            reason: 'Bottom end of vertical chain should be interesting');
+      }
+    });
+
+    test('sinking a ship leaves interest empty when no other ship is hit', () {
+      final initial = container.read(gameProvider);
+
+      // Sink a one-cell ship — simplest sinking that leaves no residual hits.
+      final ship = initial.ships.firstWhere(
+        (s) => s.cells.length == 1,
+      );
+      final sc = ship.cells.first;
+      container.read(gameProvider.notifier).handleCellClick(sc.row, sc.col);
+
+      final state = container.read(gameProvider);
+      expect(
+        state.interestCells,
+        isEmpty,
+        reason: 'After sinking the only hit ship, interest cells must be empty',
+      );
+    });
+
+    test('interest cells span multiple unsunk hit ships simultaneously', () {
+      final initial = container.read(gameProvider);
+
+      // Pick two different multi-cell ships and hit one cell of each.
+      final multiShips = initial.ships
+          .where((s) => s.cells.length >= 2)
+          .take(2)
+          .toList();
+      if (multiShips.length < 2) return; // need at least 2 multi-cell ships
+
+      final sc1 = multiShips[0].cells[0];
+      final sc2 = multiShips[1].cells[0];
+
+      container.read(gameProvider.notifier).handleCellClick(sc1.row, sc1.col);
+      container.read(gameProvider.notifier).handleCellClick(sc2.row, sc2.col);
+
+      final state = container.read(gameProvider);
+      final interest = state.interestCells;
+      final board = state.board;
+      final boardRows = board.length;
+      final boardCols = board[0].length;
+
+      // Interest cells must include at least one default neighbour of each hit.
+      bool hasNeighbour(int r, int c) {
+        for (final d in [
+          [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1],
+        ]) {
+          final nr = d[0], nc = d[1];
+          if (nr < 0 || nr >= boardRows || nc < 0 || nc >= boardCols) continue;
+          if (board[nr][nc].status != CellStatus.defaultValue) continue;
+          if (interest.contains(BoardPosition(row: nr, col: nc))) return true;
+        }
+        return false;
+      }
+
+      expect(hasNeighbour(sc1.row, sc1.col), isTrue,
+          reason: 'Interest cells must cover first ship hit');
+      expect(hasNeighbour(sc2.row, sc2.col), isTrue,
+          reason: 'Interest cells must cover second ship hit');
+    });
+
+    test('gap between two non-adjacent hits on the same ship is in interest', () {
+      final initial = container.read(gameProvider);
+
+      // Need a ship with ≥4 cells in a straight line to hit cells 0 and 2,
+      // leaving cell 1 as an unopened gap.
+      final hCandidates = initial.ships.where((s) =>
+        s.cells.length >= 4 &&
+        s.cells.map((sc) => sc.row).toSet().length == 1,
+      ).toList();
+      final vCandidates = initial.ships.where((s) =>
+        s.cells.length >= 4 &&
+        s.cells.map((sc) => sc.col).toSet().length == 1,
+      ).toList();
+
+      if (hCandidates.isNotEmpty) {
+        final ship = hCandidates.first;
+        final sorted = List<ShipCell>.from(ship.cells)
+          ..sort((a, b) => a.col.compareTo(b.col));
+        final row = sorted[0].row;
+
+        container.read(gameProvider.notifier).handleCellClick(row, sorted[0].col);
+        container.read(gameProvider.notifier).handleCellClick(row, sorted[2].col);
+
+        final state = container.read(gameProvider);
+        expect(
+          state.interestCells
+              .contains(BoardPosition(row: row, col: sorted[1].col)),
+          isTrue,
+          reason: 'Gap cell between horizontal hits should be in interest',
+        );
+      } else if (vCandidates.isNotEmpty) {
+        final ship = vCandidates.first;
+        final sorted = List<ShipCell>.from(ship.cells)
+          ..sort((a, b) => a.row.compareTo(b.row));
+        final col = sorted[0].col;
+
+        container.read(gameProvider.notifier).handleCellClick(sorted[0].row, col);
+        container.read(gameProvider.notifier).handleCellClick(sorted[2].row, col);
+
+        final state = container.read(gameProvider);
+        expect(
+          state.interestCells
+              .contains(BoardPosition(row: sorted[1].row, col: col)),
+          isTrue,
+          reason: 'Gap cell between vertical hits should be in interest',
+        );
+      }
+      // If no 4-cell ship exists (shouldn't happen with GameConstants.shipSizes)
+      // the test passes vacuously.
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     test('creates sunk message when a ship becomes sunk', () {
       final initial = container.read(gameProvider);
       final ship = initial.ships.firstWhere(

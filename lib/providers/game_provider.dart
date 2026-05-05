@@ -52,10 +52,8 @@ class GameProvider extends Notifier<SoloGameState> {
     final hitsCount = state.hitsCount + (cell.hasShip ? 1 : 0);
     final lastMoveMessage = _buildMoveMessage(cell);
     final lastMoves = _appendMoveLog(cell);
-    final interestCells = newlySunkShip != null
-        ? const <BoardPosition>{}
-        : cell.hasShip
-        ? _buildInterestCells(finalBoard, row, col)
+    final interestCells = cell.hasShip
+        ? _buildInterestCells(finalBoard, updatedShips)
         : _removeInterestCell(row, col);
     final lastSunkMessage = newlySunkShip == null
         ? null
@@ -182,26 +180,85 @@ class GameProvider extends Notifier<SoloGameState> {
     ];
   }
 
+  /// Computes interest cells from ALL ships that have hit-but-not-sunk cells.
+  ///
+  /// For each non-sunk ship with ≥1 hit cell:
+  ///   - 1 hit  → orthogonal default neighbours.
+  ///   - 2+ hits, same row → extend left/right along that row (+ fill gaps).
+  ///   - 2+ hits, same col → extend up/down along that col (+ fill gaps).
+  ///   - fallback          → orthogonal neighbours of every hit cell.
   Set<BoardPosition> _buildInterestCells(
     List<List<Cell>> board,
-    int row,
-    int col,
+    List<Ship> ships,
   ) {
-    final candidates = [
-      BoardPosition(row: row - 1, col: col),
-      BoardPosition(row: row + 1, col: col),
-      BoardPosition(row: row, col: col - 1),
-      BoardPosition(row: row, col: col + 1),
-    ];
+    final result = <BoardPosition>{};
+    final rows = board.length;
+    final cols = rows > 0 ? board[0].length : 0;
 
-    return candidates.where((position) {
-      if (position.row < 0 || position.row >= board.length) return false;
-      if (position.col < 0 || position.col >= board[position.row].length) {
-        return false;
+    bool isDefault(int r, int c) {
+      if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
+      return board[r][c].status == CellStatus.defaultValue;
+    }
+
+    void add(int r, int c) {
+      if (isDefault(r, c)) result.add(BoardPosition(row: r, col: c));
+    }
+
+    for (final ship in ships) {
+      if (ship.sunk) continue;
+      final hitCells = ship.cells
+          .where((sc) => board[sc.row][sc.col].status == CellStatus.hit)
+          .toList();
+      if (hitCells.isEmpty) continue;
+
+      if (hitCells.length == 1) {
+        final r = hitCells[0].row;
+        final c = hitCells[0].col;
+        add(r - 1, c);
+        add(r + 1, c);
+        add(r, c - 1);
+        add(r, c + 1);
+      } else {
+        final hitRowSet = hitCells.map((sc) => sc.row).toSet();
+        final hitColSet = hitCells.map((sc) => sc.col).toSet();
+
+        if (hitRowSet.length == 1) {
+          // Horizontal span
+          final r = hitRowSet.first;
+          final minC =
+              hitCells.map((sc) => sc.col).reduce((a, b) => a < b ? a : b);
+          final maxC =
+              hitCells.map((sc) => sc.col).reduce((a, b) => a > b ? a : b);
+          for (var c = minC; c <= maxC; c++) {
+            add(r, c); // gaps in span
+          }
+          add(r, minC - 1); // left extension
+          add(r, maxC + 1); // right extension
+        } else if (hitColSet.length == 1) {
+          // Vertical span
+          final c = hitColSet.first;
+          final minR =
+              hitCells.map((sc) => sc.row).reduce((a, b) => a < b ? a : b);
+          final maxR =
+              hitCells.map((sc) => sc.row).reduce((a, b) => a > b ? a : b);
+          for (var r = minR; r <= maxR; r++) {
+            add(r, c); // gaps in span
+          }
+          add(minR - 1, c); // top extension
+          add(maxR + 1, c); // bottom extension
+        } else {
+          // Defensive fallback: non-linear pattern (should not occur in valid game)
+          for (final sc in hitCells) {
+            add(sc.row - 1, sc.col);
+            add(sc.row + 1, sc.col);
+            add(sc.row, sc.col - 1);
+            add(sc.row, sc.col + 1);
+          }
+        }
       }
-      return board[position.row][position.col].status ==
-          CellStatus.defaultValue;
-    }).toSet();
+    }
+
+    return result;
   }
 
   Set<BoardPosition> _removeInterestCell(int row, int col) {

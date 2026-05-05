@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
+import '../utils/plural_ru.dart';
 import 'word_battle_logo.dart';
 
 /// Compact top bar inside the shell.
@@ -273,11 +274,19 @@ class _HudStatsRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _HudStatItem(value: '$moves', label: 'ходов', hasDivider: true),
-        _HudStatItem(value: '$hits', label: 'попаданий', hasDivider: true),
+        _HudStatItem(
+          value: '$moves',
+          label: pluralRu(moves, 'ход', 'хода', 'ходов'),
+          hasDivider: true,
+        ),
+        _HudStatItem(
+          value: '$hits',
+          label: pluralRu(hits, 'попадание', 'попадания', 'попаданий'),
+          hasDivider: true,
+        ),
         _HudStatItem(
           value: '$shipsLeft/$totalShips',
-          label: 'кораблей',
+          label: pluralRu(shipsLeft, 'корабль', 'корабля', 'кораблей'),
           hasDivider: false,
         ),
       ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../utils/plural_ru.dart';
 
 // ---------------------------------------------------------------------------
 // Event types and data
@@ -54,7 +55,8 @@ class EventStrip extends StatelessWidget {
       return _EventData(
         type: _EventType.won,
         tag: 'Победа',
-        message: 'Все корабли потоплены — ${gameState.movesCount} ходов',
+        message: 'Все корабли потоплены — ${gameState.movesCount} '
+            '${pluralRu(gameState.movesCount, 'ход', 'хода', 'ходов')}',
       );
     }
 
