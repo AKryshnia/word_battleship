@@ -152,7 +152,10 @@ class GameHudBar extends StatelessWidget {
                       _Pipe(horizontalMargin: 8),
                       Flexible(
                         fit: FlexFit.loose,
-                        child: _StatusRow(isFinished: isFinished),
+                        child: _StatusRow(
+                          isFinished: isFinished,
+                          compact: true,
+                        ),
                       ),
                     ],
                   ),
@@ -217,7 +220,8 @@ class _Pipe extends StatelessWidget {
 
 class _StatusRow extends StatelessWidget {
   final bool isFinished;
-  const _StatusRow({required this.isFinished});
+  final bool compact;
+  const _StatusRow({required this.isFinished, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +245,9 @@ class _StatusRow extends StatelessWidget {
         const SizedBox(width: 7),
         Flexible(
           child: Text(
-            isFinished ? 'Игра завершена' : 'Игра идёт',
+            isFinished
+                ? (compact ? 'Завершена' : 'Игра завершена')
+                : 'Игра идёт',
             style: AppTextStyles.hudStatus,
             maxLines: 1,
             overflow: TextOverflow.clip,

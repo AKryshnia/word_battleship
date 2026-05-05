@@ -85,12 +85,12 @@ class _GameBoardState extends State<GameBoard> {
   // ------ event handlers ------
 
   void _onCellHoverEnter(int row, int col) {
-    if (!_isDesktop) return;
+    if (!_isDesktop || !mounted) return;
     setState(() => _hover = BoardPosition(row: row, col: col));
   }
 
   void _onCellHoverExit() {
-    if (!_isDesktop) return;
+    if (!_isDesktop || !mounted) return;
     setState(() => _hover = null);
   }
 
@@ -100,6 +100,7 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   void _fire(int row, int col, String word) {
+    if (!mounted) return;
     widget.onCellClick(row, col, word);
     _postClickTimer?.cancel();
     setState(() {

@@ -30,8 +30,12 @@ class _HudStylePickerState extends State<HudStylePicker> {
     final iconColor = _hovered ? const Color(0xFF2A9490) : AppColors.accent;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
+      onEnter: (_) {
+        if (mounted) setState(() => _hovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _hovered = false);
+      },
       child: PopupMenuButton<BoardVisualStyle>(
         tooltip: 'Стиль поля',
         initialValue: widget.current,

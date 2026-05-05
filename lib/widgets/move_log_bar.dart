@@ -15,6 +15,7 @@ import '../theme/app_theme.dart';
 /// Board never jumps during play — height is constant.
 class MoveLogBar extends StatefulWidget {
   final List<MoveLogEntry> moves;
+
   /// Mobile-only: caps the bar's height and enables adaptive sizing.
   /// When null the bar uses its fixed desktop height.
   final double? maxHeight;
@@ -28,6 +29,7 @@ class _MoveLogBarState extends State<MoveLogBar> {
   late final ScrollController _scrollController;
   bool _canScrollDown = false;
   bool _canScrollUp = false;
+  bool _disposed = false;
 
   // 10 top + 24 header + 6 gap + (24 * 2 chips + 5 row gap) + 10 bottom.
   static const double _barH = AppDimensions.moveLogBarH;
@@ -52,18 +54,21 @@ class _MoveLogBarState extends State<MoveLogBar> {
   void didUpdateWidget(MoveLogBar old) {
     super.didUpdateWidget(old);
     // Moves changed → scroll metrics may have changed; recheck after layout.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollFlags());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) _updateScrollFlags();
+    });
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _scrollController.removeListener(_updateScrollFlags);
     _scrollController.dispose();
     super.dispose();
   }
 
   void _updateScrollFlags() {
-    if (!mounted) return;
+    if (_disposed || !mounted) return;
     if (!_scrollController.hasClients) {
       if (_canScrollDown || _canScrollUp) {
         setState(() {
@@ -88,7 +93,7 @@ class _MoveLogBarState extends State<MoveLogBar> {
   }
 
   void _animateTo(double offset) {
-    if (!_scrollController.hasClients) return;
+    if (_disposed || !_scrollController.hasClients) return;
     final target = offset.clamp(
       0.0,
       _scrollController.position.maxScrollExtent,
@@ -144,10 +149,7 @@ class _MoveLogBarState extends State<MoveLogBar> {
 
         final header = SizedBox(
           height: _headerHeight,
-          child: _MoveLogHeader(
-            chevron: chevron,
-            onChevronTap: _onChevronTap,
-          ),
+          child: _MoveLogHeader(chevron: chevron, onChevronTap: _onChevronTap),
         );
 
         final scrollView = Scrollbar(
