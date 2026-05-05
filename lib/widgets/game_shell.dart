@@ -55,65 +55,153 @@ class GameShell extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Top bar
-          GameHudBar(
-            gameState: gameState,
-            onReset: onReset,
-            currentStyle: boardStyle,
-            onStyleChange: onStyleChange,
-          ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 480;
 
-          // Fixed-height event zone — no layout jumps
-          EventStrip(gameState: gameState),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top bar
+              GameHudBar(
+                gameState: gameState,
+                onReset: onReset,
+                currentStyle: boardStyle,
+                onStyleChange: onStyleChange,
+              ),
 
-          // Board — takes all remaining height; padding shrinks on narrow shells.
-          // The board area is given the style's mat color so dark themes render
-          // a fully themed surface inside the otherwise white shell card.
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final pad = constraints.maxWidth < 460
-                    ? 14.0
-                    : AppDimensions.shellPadH;
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Container(color: styleConfig.boardBackground),
-                    ),
-                    if (styleConfig.scanlines)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CustomPaint(
-                            painter: ScanlineOverlayPainter(
-                              color: styleConfig.scanlineColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    Padding(
-                      padding: EdgeInsets.all(pad),
-                      child: GameBoard(
-                        board: gameState.board,
-                        columnNouns: gameState.columnNouns,
-                        rowAdjectives: gameState.rowAdjectives,
-                        interestCells: gameState.interestCells,
-                        onCellClick: (row, col, _) => onCellClick(row, col),
-                        style: styleConfig,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
+              // Fixed-height event zone — no layout jumps
+              EventStrip(gameState: gameState),
 
-          // Collapsed-fixed bottom zone — board never jumps during normal play
-          MoveLogBar(moves: gameState.lastMoves),
-        ],
+              if (isMobile)
+                Expanded(child: _buildMobileGameBlock(styleConfig: styleConfig))
+              else ...[
+                // Board — takes all remaining height.
+                // The board area is given the style's mat color so dark themes
+                // render a fully themed surface inside the white shell card.
+                Expanded(child: _buildBoardArea(styleConfig: styleConfig)),
+
+                // Collapsed-fixed bottom zone — board never jumps during play
+                MoveLogBar(moves: gameState.lastMoves),
+              ],
+            ],
+          );
+        },
       ),
     );
+  }
+
+  Widget _buildMobileGameBlock({required BoardStyleConfig styleConfig}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const pad = 14.0;
+        const targetGap = 14.0;
+        final gap = (constraints.maxHeight - AppDimensions.moveLogBarH).clamp(
+          0.0,
+          targetGap,
+        );
+        final boardTargetH =
+            _estimateBoardContentHeight(constraints.maxWidth - pad * 2) +
+            pad * 2;
+        final maxBoardH =
+            constraints.maxHeight - AppDimensions.moveLogBarH - gap;
+        final boardH = maxBoardH <= 0
+            ? 0.0
+            : boardTargetH.clamp(0.0, maxBoardH);
+
+        // Subtract a small buffer so that sub-pixel accumulation from border
+        // widths, padding rounding, and platform font metrics never lets
+        // MoveLogBar's actual height exceed the remaining column space,
+        // which would cause a RenderFlex overflow.
+        const layoutSafety = 2.0;
+        final availableForLog =
+            (constraints.maxHeight - boardH - gap - layoutSafety).clamp(
+          AppDimensions.moveLogBarH,
+          constraints.maxHeight,
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: boardH,
+              child: _buildBoardArea(styleConfig: styleConfig, pad: pad),
+            ),
+            Container(height: gap, color: styleConfig.boardBackground),
+            MoveLogBar(
+              moves: gameState.lastMoves,
+              maxHeight: availableForLog,
+            ),
+            Expanded(child: Container(color: AppColors.surface)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBoardArea({required BoardStyleConfig styleConfig, double? pad}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final resolvedPad =
+            pad ??
+            (constraints.maxWidth < 460 ? 14.0 : AppDimensions.shellPadH);
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Container(color: styleConfig.boardBackground),
+            ),
+            if (styleConfig.scanlines)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: ScanlineOverlayPainter(
+                      color: styleConfig.scanlineColor,
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.all(resolvedPad),
+              child: GameBoard(
+                board: gameState.board,
+                columnNouns: gameState.columnNouns,
+                rowAdjectives: gameState.rowAdjectives,
+                interestCells: gameState.interestCells,
+                onCellClick: (row, col, _) => onCellClick(row, col),
+                style: styleConfig,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  double _estimateBoardContentHeight(double contentWidth) {
+    final boardSize = gameState.board.length;
+    final maxNounLen = gameState.columnNouns.isEmpty
+        ? 5
+        : gameState.columnNouns
+              .map((noun) => noun.word.length)
+              .reduce((a, b) => a > b ? a : b);
+    final maxAdjLen = gameState.rowAdjectives.isEmpty
+        ? 8
+        : gameState.rowAdjectives
+              .map((adjective) => adjective.base.length)
+              .reduce((a, b) => a > b ? a : b);
+
+    const axisGap = 4.0;
+    const cellGap = AppDimensions.cellGap;
+    const axisFs = AppDimensions.axisFsMd;
+    const charW = axisFs * 0.65;
+    final columnHeaderH = (maxNounLen * charW + 20).clamp(40.0, 160.0);
+    final rowHeaderW = (maxAdjLen * charW + 24).clamp(64.0, 180.0);
+    final maxGridW = contentWidth - rowHeaderW - axisGap;
+    final gridSize = maxGridW.clamp(0.0, double.infinity);
+    final cellSize = (gridSize - cellGap * (boardSize - 1)) / boardSize;
+    final safeGridSize = cellSize.isFinite && cellSize > 0 ? gridSize : 0.0;
+
+    return columnHeaderH + axisGap + safeGridSize;
   }
 }

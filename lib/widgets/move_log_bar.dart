@@ -15,7 +15,10 @@ import '../theme/app_theme.dart';
 /// Board never jumps during play — height is constant.
 class MoveLogBar extends StatefulWidget {
   final List<MoveLogEntry> moves;
-  const MoveLogBar({super.key, required this.moves});
+  /// Mobile-only: caps the bar's height and enables adaptive sizing.
+  /// When null the bar uses its fixed desktop height.
+  final double? maxHeight;
+  const MoveLogBar({super.key, required this.moves, this.maxHeight});
 
   @override
   State<MoveLogBar> createState() => _MoveLogBarState();
@@ -115,6 +118,10 @@ class _MoveLogBarState extends State<MoveLogBar> {
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
+  // top padding + bottom padding + header + header-to-chips gap
+  static const double _fixedOverhead =
+      10.0 + 10.0 + _headerHeight + _headerToChipsGap;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -130,45 +137,80 @@ class _MoveLogBarState extends State<MoveLogBar> {
           chevron = Icons.keyboard_arrow_up;
         }
 
-        return Container(
-          height: _barH,
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+        final decoration = const BoxDecoration(
+          border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+        );
+        final padding = EdgeInsets.fromLTRB(hPad, 10, hPad, 10);
+
+        final header = SizedBox(
+          height: _headerHeight,
+          child: _MoveLogHeader(
+            chevron: chevron,
+            onChevronTap: _onChevronTap,
           ),
-          padding: EdgeInsets.fromLTRB(hPad, 10, hPad, 10),
+        );
+
+        final scrollView = Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: _canScrollDown || _canScrollUp,
+          trackVisibility: _canScrollDown || _canScrollUp,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            primary: false,
+            physics: const ClampingScrollPhysics(),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Wrap(
+                spacing: _chipGap,
+                runSpacing: _chipGap,
+                children: [
+                  for (final move in widget.moves)
+                    _MoveChip(move: move, maxWidth: maxChipW),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        if (widget.maxHeight == null) {
+          // Desktop: fixed height, chips area fills remaining via Expanded.
+          return Container(
+            height: _barH,
+            decoration: decoration,
+            padding: padding,
+            clipBehavior: Clip.hardEdge,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                header,
+                const SizedBox(height: _headerToChipsGap),
+                Expanded(child: scrollView),
+              ],
+            ),
+          );
+        }
+
+        // Mobile: bar shrinks to content, capped at maxHeight.
+        // ConstrainedBox lets SingleChildScrollView size to its Wrap content
+        // (shrink-wrap) and caps at chipsMaxH — scroll kicks in only then.
+        final chipsMaxH = (widget.maxHeight! - _fixedOverhead).clamp(
+          _scrollStep,
+          double.infinity,
+        );
+        return Container(
+          constraints: BoxConstraints(minHeight: _barH),
+          decoration: decoration,
+          padding: padding,
           clipBehavior: Clip.hardEdge,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: _headerHeight,
-                child: _MoveLogHeader(
-                  chevron: chevron,
-                  onChevronTap: _onChevronTap,
-                ),
-              ),
+              header,
               const SizedBox(height: _headerToChipsGap),
-              Expanded(
-                child: Scrollbar(
-                  controller: _scrollController,
-                  thumbVisibility: _canScrollDown || _canScrollUp,
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    primary: false,
-                    physics: const ClampingScrollPhysics(),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Wrap(
-                        spacing: _chipGap,
-                        runSpacing: _chipGap,
-                        children: [
-                          for (final move in widget.moves)
-                            _MoveChip(move: move, maxWidth: maxChipW),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: chipsMaxH),
+                child: scrollView,
               ),
             ],
           ),

@@ -41,12 +41,20 @@ class GameHudBar extends StatelessWidget {
     final moves = gameState.movesCount;
     final hits = gameState.hitsCount;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth < 480) {
-        return _buildMobileHud(isFinished, moves, hits, shipsLeft, totalShips);
-      }
-      return _buildDesktopHud(isFinished, moves, hits, shipsLeft, totalShips);
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 480) {
+          return _buildMobileHud(
+            isFinished,
+            moves,
+            hits,
+            shipsLeft,
+            totalShips,
+          );
+        }
+        return _buildDesktopHud(isFinished, moves, hits, shipsLeft, totalShips);
+      },
+    );
   }
 
   // ── Desktop: single 54 px row ─────────────────────────────────────────────
@@ -60,9 +68,7 @@ class GameHudBar extends StatelessWidget {
   ) {
     return Container(
       height: AppDimensions.hudHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.shellPadH,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.shellPadH),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
       ),
@@ -98,10 +104,7 @@ class GameHudBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              HudStylePicker(
-                current: currentStyle,
-                onSelected: onStyleChange,
-              ),
+              HudStylePicker(current: currentStyle, onSelected: onStyleChange),
               const SizedBox(width: 6),
               SizedBox(height: 32, child: _NewGameButton(onPressed: onReset)),
             ],
@@ -120,79 +123,73 @@ class GameHudBar extends StatelessWidget {
     int shipsLeft,
     int totalShips,
   ) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Row 1: brand · pipe · status · button
-          // Tighter padding + a FittedBox on the brand so the full "WordBattle"
-          // word always fits next to the picker / new-game cluster on narrow
-          // shells, instead of clipping at the last few characters.
-          SizedBox(
-            height: 42,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: WordBattleLogo(markSize: 20),
-                          ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Row 1: brand · pipe · status · button
+        // Tighter padding + a FittedBox on the brand so the full "WordBattle"
+        // word always fits next to the picker / new-game cluster on narrow
+        // shells, instead of clipping at the last few characters.
+        SizedBox(
+          height: 42,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: WordBattleLogo(markSize: 20),
                         ),
-                        _Pipe(horizontalMargin: 8),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: _StatusRow(isFinished: isFinished),
-                        ),
-                      ],
-                    ),
+                      ),
+                      _Pipe(horizontalMargin: 8),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: _StatusRow(isFinished: isFinished),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  HudStylePicker(
-                    current: currentStyle,
-                    onSelected: onStyleChange,
-                  ),
-                  const SizedBox(width: 4),
-                  _NewGameButton(onPressed: onReset),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                HudStylePicker(
+                  current: currentStyle,
+                  onSelected: onStyleChange,
+                ),
+                const SizedBox(width: 4),
+                _NewGameButton(onPressed: onReset),
+              ],
             ),
           ),
-          // Row 2: stats on surface2 background
-          Container(
-            height: 26,
-            color: AppColors.surface2,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.shellPadH,
-            ),
+        ),
+        // Row 2: stats on surface2 background
+        Container(
+          height: 26,
+          color: AppColors.surface2,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.shellPadH,
+          ),
+          alignment: Alignment.centerLeft,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: _HudStatsRow(
-                moves: moves,
-                hits: hits,
-                shipsLeft: shipsLeft,
-                totalShips: totalShips,
-              ),
+            child: _HudStatsRow(
+              moves: moves,
+              hits: hits,
+              shipsLeft: shipsLeft,
+              totalShips: totalShips,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,9 +313,7 @@ class _HudStatItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: hasDivider
           ? const BoxDecoration(
-              border: Border(
-                right: BorderSide(color: AppColors.borderSubtle),
-              ),
+              border: Border(right: BorderSide(color: AppColors.borderSubtle)),
             )
           : null,
       child: Row(
