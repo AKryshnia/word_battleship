@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:word_battleship/models/models.dart';
 import 'package:word_battleship/theme/board_style.dart';
+import 'package:word_battleship/utils/split_ru_label_parts.dart';
 import 'package:word_battleship/widgets/game_board.dart';
 
 // ---------------------------------------------------------------------------

@@ -38,23 +38,25 @@ class WordBattleLogo extends StatelessWidget {
       children: [
         WordBattleMark(size: markSize),
         SizedBox(width: markSize * 0.33),
-        Text.rich(
-          TextSpan(
-            style: AppTextStyles.hudBrand.copyWith(
-              fontSize: fontSize,
-              letterSpacing: -0.02 * fontSize,
-            ),
-            children: const [
-              TextSpan(text: 'Word'),
-              TextSpan(
-                text: 'Battle',
-                style: TextStyle(color: AppColors.accent),
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              style: AppTextStyles.hudBrand.copyWith(
+                fontSize: fontSize,
+                letterSpacing: -0.02 * fontSize,
               ),
-            ],
+              children: const [
+                TextSpan(text: 'Word'),
+                TextSpan(
+                  text: 'Battle',
+                  style: TextStyle(color: AppColors.accent),
+                ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            softWrap: false,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.clip,
-          softWrap: false,
         ),
       ],
     );

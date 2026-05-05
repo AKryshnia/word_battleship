@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
+import 'board_axis_headers.dart';
+import 'board_cell_widget.dart';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -190,7 +192,7 @@ class _GameBoardState extends State<GameBoard> {
                   SizedBox(width: rowHeaderWidth + axisGap),
                   SizedBox(
                     width: gridSize,
-                    child: _ColumnHeaderRow(
+                    child: BoardColumnHeaderRow(
                       nouns: widget.columnNouns,
                       cellSize: cellSize,
                       gap: cellGap,
@@ -210,7 +212,7 @@ class _GameBoardState extends State<GameBoard> {
                 SizedBox(
                   width: rowHeaderWidth,
                   height: gridSize,
-                  child: _RowHeaderColumn(
+                  child: BoardRowHeaderColumn(
                     adjectives: widget.rowAdjectives,
                     cellSize: cellSize,
                     gap: cellGap,
@@ -244,7 +246,7 @@ class _GameBoardState extends State<GameBoard> {
                         child: GestureDetector(
                           onTap: () =>
                               _onCellTap(row, col, cell.status, cell.word),
-                          child: _CellWidget(
+                          child: BoardCellWidget(
                             cell: cell,
                             isInterestCell: widget.interestCells.contains(
                               BoardPosition(row: row, col: col),
@@ -268,315 +270,3 @@ class _GameBoardState extends State<GameBoard> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Column header — rotated nouns (bottom-to-top, tilt head left to read)
-// ---------------------------------------------------------------------------
-
-class _ColumnHeaderRow extends StatelessWidget {
-  final List<NounEntry> nouns;
-  final double cellSize;
-  final double gap;
-  final double axisFs;
-  final int? activeIndex;
-  final double headerHeight;
-  final BoardStyleConfig style;
-
-  const _ColumnHeaderRow({
-    required this.nouns,
-    required this.cellSize,
-    required this.gap,
-    required this.axisFs,
-    required this.activeIndex,
-    required this.headerHeight,
-    required this.style,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (var i = 0; i < nouns.length; i++) ...[
-          SizedBox(
-            width: cellSize,
-            height: headerHeight,
-            child: _NounLabel(
-              word: nouns[i].word,
-              isActive: i == activeIndex,
-              axisFs: axisFs,
-              style: style,
-            ),
-          ),
-          if (i < nouns.length - 1) SizedBox(width: gap),
-        ],
-      ],
-    );
-  }
-}
-
-class _NounLabel extends StatelessWidget {
-  final String word;
-  final bool isActive;
-  final double axisFs;
-  final BoardStyleConfig style;
-
-  const _NounLabel({
-    required this.word,
-    required this.isActive,
-    required this.axisFs,
-    required this.style,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final base = isActive ? style.axisLabelActive : style.axisLabel;
-    final textStyle = base.copyWith(
-      fontSize: axisFs,
-      letterSpacing: (style.axisUppercase ? 0.08 : 0.025) * axisFs,
-    );
-    final display = style.axisUppercase ? word.toUpperCase() : word;
-
-    return Center(
-      child: RotatedBox(
-        // quarterTurns: 3 → 90° CCW → text reads bottom-to-top (tilt head left)
-        quarterTurns: 3,
-        child: AnimatedDefaultTextStyle(
-          style: textStyle,
-          duration: const Duration(milliseconds: 100),
-          child: Text(
-            display,
-            overflow: TextOverflow.visible,
-            softWrap: false,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Row header — horizontal adjectives
-// ---------------------------------------------------------------------------
-
-class _RowHeaderColumn extends StatelessWidget {
-  final List<AdjectiveEntry> adjectives;
-  final double cellSize;
-  final double gap;
-  final double axisFs;
-  final int? activeIndex;
-  final BoardStyleConfig style;
-
-  const _RowHeaderColumn({
-    required this.adjectives,
-    required this.cellSize,
-    required this.gap,
-    required this.axisFs,
-    required this.activeIndex,
-    required this.style,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < adjectives.length; i++) ...[
-          SizedBox(
-            height: cellSize,
-            child: _AdjectiveLabel(
-              word: adjectives[i].base,
-              isActive: i == activeIndex,
-              axisFs: axisFs,
-              style: style,
-            ),
-          ),
-          if (i < adjectives.length - 1) SizedBox(height: gap),
-        ],
-      ],
-    );
-  }
-}
-
-class _AdjectiveLabel extends StatelessWidget {
-  final String word;
-  final bool isActive;
-  final double axisFs;
-  final BoardStyleConfig style;
-
-  const _AdjectiveLabel({
-    required this.word,
-    required this.isActive,
-    required this.axisFs,
-    required this.style,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final base = isActive ? style.axisLabelActive : style.axisLabel;
-    final textStyle = base.copyWith(
-      fontSize: axisFs,
-      letterSpacing: (style.axisUppercase ? 0.08 : 0.025) * axisFs,
-    );
-    final display = style.axisUppercase ? word.toUpperCase() : word;
-
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 8),
-        child: AnimatedDefaultTextStyle(
-          style: textStyle,
-          duration: const Duration(milliseconds: 100),
-          child: Text(
-            display,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
-            softWrap: false,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Cell widget
-//
-// Reads its full visual from the active BoardStyleConfig — no inline color
-// switches. Hit / miss icons come from the style's CellIconKind dispatch.
-// ---------------------------------------------------------------------------
-
-class _CellWidget extends StatelessWidget {
-  final Cell cell;
-  final bool isInterestCell;
-  final bool isActiveCell;
-  final bool isRowPath;
-  final bool isColPath;
-  final BoardStyleConfig style;
-
-  const _CellWidget({
-    required this.cell,
-    required this.isInterestCell,
-    required this.isActiveCell,
-    required this.isRowPath,
-    required this.isColPath,
-    required this.style,
-  });
-
-  bool get _isPath =>
-      (isRowPath || isColPath) && cell.status == CellStatus.defaultValue;
-
-  CellVisual _resolveVisual() {
-    if (isActiveCell) return style.cellHover;
-    return switch (cell.status) {
-      CellStatus.defaultValue => _isPath ? style.cellPath : style.cellDefault,
-      CellStatus.hit => style.cellHit,
-      CellStatus.sunk => style.cellSunk,
-      CellStatus.miss => style.cellMiss,
-      CellStatus.blocked => style.cellBlocked,
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final visual = _resolveVisual();
-    // Interest cells get a subtle accent overlay regardless of theme — keeps
-    // the UX "hint" affordance working consistently across all 4 styles.
-    final isInterestOverlay =
-        isInterestCell && cell.status == CellStatus.defaultValue && !isActiveCell;
-
-    final radius = BorderRadius.circular(AppDimensions.radiusCell);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isInterestOverlay ? AppColors.accentFaint : visual.background,
-        borderRadius: radius,
-        border: Border.all(
-          color: isInterestOverlay ? AppColors.accentMid : visual.borderColor,
-          width: visual.borderWidth,
-        ),
-        boxShadow: isInterestOverlay
-            ? const [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)]
-            : visual.shadows,
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Optional diagonal hatch (Modern blocked) — clipped to the cell's
-          // rounded corners so it does not paint over the border.
-          if (!isInterestOverlay && visual.hatchColor != null)
-            ClipRRect(
-              borderRadius: radius,
-              child: CustomPaint(
-                painter: DiagonalHatchPainter(color: visual.hatchColor!),
-              ),
-            ),
-          Center(child: _content()),
-        ],
-      ),
-    );
-  }
-
-  Widget? _content() {
-    switch (cell.status) {
-      case CellStatus.defaultValue:
-      case CellStatus.blocked:
-        return null;
-      case CellStatus.hit:
-      case CellStatus.sunk:
-        return FractionallySizedBox(
-          widthFactor: iconFractionFor(style.hitIcon),
-          heightFactor: iconFractionFor(style.hitIcon),
-          child: CustomPaint(
-            painter: CellIconPainter(
-              kind: style.hitIcon,
-              color: style.hitIconColor,
-            ),
-          ),
-        );
-      case CellStatus.miss:
-        return FractionallySizedBox(
-          widthFactor: iconFractionFor(style.missIcon),
-          heightFactor: iconFractionFor(style.missIcon),
-          child: CustomPaint(
-            painter: CellIconPainter(
-              kind: style.missIcon,
-              color: style.missIconColor,
-            ),
-          ),
-        );
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Kept as a public utility (used by legacy tests; not used in rendering).
-// ---------------------------------------------------------------------------
-
-String splitRuLabel(String word) => splitRuLabelParts(word).join('\n');
-
-List<String> splitRuLabelParts(String word) {
-  final s = word.trim();
-  if (s.length <= 6) return [s];
-
-  const vowels = 'аеёиоуыэюя';
-  final minPart = s.length >= 10 ? 4 : 3;
-  final target = s.length ~/ 2;
-  var best = -1;
-  var bestScore = 1 << 30;
-
-  for (var i = minPart; i <= s.length - minPart; i++) {
-    final l = s[i - 1].toLowerCase();
-    final r = s[i].toLowerCase();
-    var score = (target - i).abs() * 10;
-    if (vowels.contains(l) && !vowels.contains(r)) {
-      score -= 6;
-    } else if (!vowels.contains(l) && vowels.contains(r)) {
-      score -= 2;
-    }
-    score += (i - (s.length - i)).abs();
-    if (score < bestScore) {
-      bestScore = score;
-      best = i;
-    }
-  }
-
-  return best == -1 ? [s] : [s.substring(0, best), s.substring(best)];
-}
