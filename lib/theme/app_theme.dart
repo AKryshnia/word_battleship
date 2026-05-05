@@ -23,11 +23,11 @@ abstract final class AppColors {
   static const text2 = Color(0xFF5A5450);
   static const text3 = Color(0xFF9C9488);
 
-  // Accent — indigo (unchanged)
-  static const accent = Color(0xFF3D5CE8);
-  static const accentFaint = Color(0x173D5CE8); // opacity ≈ 0.09
-  static const accentMid = Color(0x2E3D5CE8); // opacity ≈ 0.18
-  static const accentGlow = Color(0x383D5CE8); // opacity ≈ 0.22
+  // Accent — teal (brand #3FB6B0)
+  static const accent = Color(0xFF3FB6B0);
+  static const accentFaint = Color(0x173FB6B0); // opacity ≈ 0.09
+  static const accentMid = Color(0x2E3FB6B0); // opacity ≈ 0.18
+  static const accentGlow = Color(0x383FB6B0); // opacity ≈ 0.22
 
   // Cell: default — very light warm cream
   static const cellDefaultBg = Color(0xFFF2F0EB);
@@ -183,11 +183,10 @@ abstract final class AppTextStyles {
     letterSpacing: 0.12 * 9.5,
   );
 
-  // "Новая игра" button
+  // "Новая игра" button — color is set by foregroundColor in the button widget
   static final newGameButton = GoogleFonts.manrope(
     fontSize: 12,
-    fontWeight: FontWeight.w700,
-    color: Colors.white,
+    fontWeight: FontWeight.w600,
     letterSpacing: 0.01 * 12,
   );
 }

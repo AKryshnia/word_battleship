@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
+import 'word_battle_logo.dart';
 
 /// Compact top bar inside the shell.
 ///
@@ -71,7 +72,7 @@ class GameHudBar extends StatelessWidget {
               children: [
                 Flexible(
                   fit: FlexFit.loose,
-                  child: _brandText(),
+                  child: WordBattleLogo(markSize: 24),
                 ),
                 _Pipe(horizontalMargin: 16),
                 Flexible(
@@ -144,7 +145,7 @@ class GameHudBar extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
-                            child: _brandText(),
+                            child: WordBattleLogo(markSize: 20),
                           ),
                         ),
                         _Pipe(horizontalMargin: 8),
@@ -190,23 +191,6 @@ class GameHudBar extends StatelessWidget {
     );
   }
 
-  Widget _brandText() {
-    return Text.rich(
-      TextSpan(
-        style: AppTextStyles.hudBrand.copyWith(color: AppColors.text1),
-        children: const [
-          TextSpan(text: 'Word'),
-          TextSpan(
-            text: 'Battle',
-            style: TextStyle(color: AppColors.accent),
-          ),
-        ],
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.clip,
-      softWrap: false,
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -471,17 +455,23 @@ class _StyleSwatch extends StatelessWidget {
 // "Новая игра" button
 // ─────────────────────────────────────────────────────────────────────────────
 
+// B · Soft fill: desaturated teal tint bg, dark-teal text, no border.
 class _NewGameButton extends StatelessWidget {
   final VoidCallback onPressed;
   const _NewGameButton({required this.onPressed});
+
+  // background: #D6EEEB  hover/pressed: ~#C8E8E5 (Flutter applies 8/10 % opacity of _fg)
+  static const _bg = Color(0xFFD6EEEB);
+  static const _fg = Color(0xFF1A4F4C);
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        backgroundColor: AppColors.accent,
-        foregroundColor: Colors.white,
+        backgroundColor: _bg,
+        foregroundColor: _fg,
+        overlayColor: _fg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
         ),

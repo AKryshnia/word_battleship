@@ -1,11 +1,11 @@
 {
-    "name": "word_battleship",
-    "short_name": "word_battleship",
+    "name": "WordBattle",
+    "short_name": "WordBattle",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F8F6F1",
+    "theme_color": "#F8F6F1",
+    "description": "WordBattle — word guessing game.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
