@@ -63,6 +63,176 @@ abstract final class AppColors {
   static const statusWon = Color(0xFF1A9E60);
 }
 
+@immutable
+class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
+  final Color background;
+  final Color surface;
+  final Color surface2;
+  final Color surface3;
+  final Color border;
+  final Color borderSubtle;
+  final Color borderStrong;
+  final Color text1;
+  final Color text2;
+  final Color text3;
+  final Color accent;
+  final Color accentHover;
+  final Color accentPressed;
+  final Color accentFaint;
+  final Color accentMid;
+  final Color accentGlow;
+  final Color amber;
+  final Color red;
+  final Color green;
+  final Color onAccent;
+
+  const WordBattleThemeTokens({
+    required this.background,
+    required this.surface,
+    required this.surface2,
+    required this.surface3,
+    required this.border,
+    required this.borderSubtle,
+    required this.borderStrong,
+    required this.text1,
+    required this.text2,
+    required this.text3,
+    required this.accent,
+    required this.accentHover,
+    required this.accentPressed,
+    required this.accentFaint,
+    required this.accentMid,
+    required this.accentGlow,
+    required this.amber,
+    required this.red,
+    required this.green,
+    required this.onAccent,
+  });
+
+  static const light = WordBattleThemeTokens(
+    background: AppColors.background,
+    surface: AppColors.surface,
+    surface2: AppColors.surface2,
+    surface3: Color(0xFFEDE9E0),
+    border: AppColors.border,
+    borderSubtle: AppColors.borderSubtle,
+    borderStrong: Color(0xFFC8C2BA),
+    text1: AppColors.text1,
+    text2: AppColors.text2,
+    text3: AppColors.text3,
+    accent: AppColors.accent,
+    accentHover: Color(0xFF2A9490),
+    accentPressed: Color(0xFF1A4F4C),
+    accentFaint: AppColors.accentFaint,
+    accentMid: AppColors.accentMid,
+    accentGlow: AppColors.accentGlow,
+    amber: Color(0xFFC06A14),
+    red: AppColors.cellHitBg,
+    green: AppColors.statusWon,
+    onAccent: Colors.white,
+  );
+
+  static const dark = WordBattleThemeTokens(
+    background: Color(0xFF181715),
+    surface: Color(0xFF222220),
+    surface2: Color(0xFF2A2A28),
+    surface3: Color(0xFF33332F),
+    border: Color(0xFF3A3A37),
+    borderSubtle: Color(0xFF2E2E2C),
+    borderStrong: Color(0xFF4A4A45),
+    text1: Color(0xFFF0EAD9),
+    text2: Color(0xFFADA89B),
+    text3: Color(0xFF6E6A60),
+    accent: Color(0xFF3FB6B0),
+    accentHover: Color(0xFF5BC8C2),
+    accentPressed: Color(0xFF2C9A94),
+    accentFaint: Color(0x1C3FB6B0),
+    accentMid: Color(0x383FB6B0),
+    accentGlow: Color(0x4D3FB6B0),
+    amber: Color(0xFFE2A340),
+    red: Color(0xFFDC5A32),
+    green: Color(0xFF42C17A),
+    onAccent: Color(0xFF0A2827),
+  );
+
+  @override
+  WordBattleThemeTokens copyWith({
+    Color? background,
+    Color? surface,
+    Color? surface2,
+    Color? surface3,
+    Color? border,
+    Color? borderSubtle,
+    Color? borderStrong,
+    Color? text1,
+    Color? text2,
+    Color? text3,
+    Color? accent,
+    Color? accentHover,
+    Color? accentPressed,
+    Color? accentFaint,
+    Color? accentMid,
+    Color? accentGlow,
+    Color? amber,
+    Color? red,
+    Color? green,
+    Color? onAccent,
+  }) {
+    return WordBattleThemeTokens(
+      background: background ?? this.background,
+      surface: surface ?? this.surface,
+      surface2: surface2 ?? this.surface2,
+      surface3: surface3 ?? this.surface3,
+      border: border ?? this.border,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
+      borderStrong: borderStrong ?? this.borderStrong,
+      text1: text1 ?? this.text1,
+      text2: text2 ?? this.text2,
+      text3: text3 ?? this.text3,
+      accent: accent ?? this.accent,
+      accentHover: accentHover ?? this.accentHover,
+      accentPressed: accentPressed ?? this.accentPressed,
+      accentFaint: accentFaint ?? this.accentFaint,
+      accentMid: accentMid ?? this.accentMid,
+      accentGlow: accentGlow ?? this.accentGlow,
+      amber: amber ?? this.amber,
+      red: red ?? this.red,
+      green: green ?? this.green,
+      onAccent: onAccent ?? this.onAccent,
+    );
+  }
+
+  @override
+  WordBattleThemeTokens lerp(
+    ThemeExtension<WordBattleThemeTokens>? other,
+    double t,
+  ) {
+    if (other is! WordBattleThemeTokens) return this;
+    return WordBattleThemeTokens(
+      background: Color.lerp(background, other.background, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      surface2: Color.lerp(surface2, other.surface2, t)!,
+      surface3: Color.lerp(surface3, other.surface3, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      borderSubtle: Color.lerp(borderSubtle, other.borderSubtle, t)!,
+      borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
+      text1: Color.lerp(text1, other.text1, t)!,
+      text2: Color.lerp(text2, other.text2, t)!,
+      text3: Color.lerp(text3, other.text3, t)!,
+      accent: Color.lerp(accent, other.accent, t)!,
+      accentHover: Color.lerp(accentHover, other.accentHover, t)!,
+      accentPressed: Color.lerp(accentPressed, other.accentPressed, t)!,
+      accentFaint: Color.lerp(accentFaint, other.accentFaint, t)!,
+      accentMid: Color.lerp(accentMid, other.accentMid, t)!,
+      accentGlow: Color.lerp(accentGlow, other.accentGlow, t)!,
+      amber: Color.lerp(amber, other.amber, t)!,
+      red: Color.lerp(red, other.red, t)!,
+      green: Color.lerp(green, other.green, t)!,
+      onAccent: Color.lerp(onAccent, other.onAccent, t)!,
+    );
+  }
+}
+
 // ═══════════════════════════════════════════════════════
 // DIMENSIONS
 // ═══════════════════════════════════════════════════════
@@ -206,6 +376,7 @@ abstract final class AppTheme {
       fontFamily: GoogleFonts.manrope().fontFamily,
       textTheme: manropeTextTheme,
       scaffoldBackgroundColor: AppColors.background,
+      extensions: const [WordBattleThemeTokens.light],
       colorScheme: const ColorScheme.light(
         primary: AppColors.accent,
         onPrimary: Colors.white,
@@ -248,6 +419,73 @@ abstract final class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.accent,
           foregroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+          ),
+          textStyle: AppTextStyles.newGameButton,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+      ),
+    );
+  }
+
+  static ThemeData dark() {
+    final manropeTextTheme = GoogleFonts.manropeTextTheme(
+      ThemeData.dark().textTheme,
+    );
+    const tokens = WordBattleThemeTokens.dark;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: GoogleFonts.manrope().fontFamily,
+      textTheme: manropeTextTheme,
+      scaffoldBackgroundColor: tokens.background,
+      extensions: const [tokens],
+      colorScheme: ColorScheme.dark(
+        primary: tokens.accent,
+        onPrimary: tokens.onAccent,
+        surface: tokens.surface,
+        onSurface: tokens.text1,
+        outline: tokens.border,
+        secondary: tokens.accent,
+        onSecondary: tokens.onAccent,
+        error: tokens.red,
+        onError: Colors.white,
+      ),
+      cardTheme: CardThemeData(
+        color: tokens.surface,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusShell),
+          side: BorderSide(color: tokens.border),
+        ),
+      ),
+      dividerColor: tokens.borderSubtle,
+      dividerTheme: DividerThemeData(
+        color: tokens.borderSubtle,
+        thickness: 1,
+        space: 1,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: tokens.surface,
+        foregroundColor: tokens.text1,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        titleTextStyle: GoogleFonts.manrope(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: tokens.text1,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: tokens.accent,
+          foregroundColor: tokens.onAccent,
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
