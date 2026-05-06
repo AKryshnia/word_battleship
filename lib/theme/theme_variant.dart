@@ -30,17 +30,17 @@ enum WordBattleThemePreference { system, paper, graphite, fluffy }
 
 extension WordBattleThemePreferenceExt on WordBattleThemePreference {
   String get label => switch (this) {
-    WordBattleThemePreference.system => 'System',
-    WordBattleThemePreference.paper => 'Paper',
-    WordBattleThemePreference.graphite => 'Graphite',
-    WordBattleThemePreference.fluffy => 'Fluffy',
+    WordBattleThemePreference.system => 'Система',
+    WordBattleThemePreference.paper => 'Светлая',
+    WordBattleThemePreference.graphite => 'Темная',
+    WordBattleThemePreference.fluffy => 'Розовая',
   };
 
   String get shortLabel => switch (this) {
-    WordBattleThemePreference.system => 'Auto',
-    WordBattleThemePreference.paper => 'Light',
-    WordBattleThemePreference.graphite => 'Dark',
-    WordBattleThemePreference.fluffy => 'Pink',
+    WordBattleThemePreference.system => 'Авто',
+    WordBattleThemePreference.paper => 'Светлая',
+    WordBattleThemePreference.graphite => 'Темная',
+    WordBattleThemePreference.fluffy => 'Розовая',
   };
 
   WordBattleThemeVariant resolveVariant(Brightness platformBrightness) =>
