@@ -7,31 +7,19 @@ import 'board_style.dart';
 // ═════════════════════════════════════════════════════════════════════════════
 // Presets
 //
-// Modern keeps the existing Ink-on-Paper look (default). The other three
-// reproduce the reference HTML themes. Geometry is intentionally inherited
-// from AppDimensions so layout tests and responsive math stay valid.
+// Three active presets, one per app theme variant:
+//   modernInk   — Paper (light, Ink on Paper)
+//   graphiteInk — Graphite (dark)
+//   fluffy      — Fluffy (candy pink)
+// Geometry is intentionally inherited from AppDimensions so layout tests and
+// responsive math stay valid.
 // ═════════════════════════════════════════════════════════════════════════════
 
 class BoardStylePresets {
   const BoardStylePresets._();
 
-  static const BoardVisualStyle defaultStyle = BoardVisualStyle.modernInk;
-
   static final BoardStyleConfig modernInk = _modern;
   static final BoardStyleConfig fluffy = _fluffy;
-
-  static BoardStyleConfig of(BoardVisualStyle style) {
-    switch (style) {
-      case BoardVisualStyle.modernInk:
-        return _modern;
-      case BoardVisualStyle.navalRetro:
-        return _retro;
-      case BoardVisualStyle.candyFluffy:
-        return _fluffy;
-      case BoardVisualStyle.gridScan:
-        return _future;
-    }
-  }
 
   static final BoardStyleConfig graphiteInk = BoardStyleConfig(
     id: BoardVisualStyle.modernInk,
@@ -169,68 +157,7 @@ class BoardStylePresets {
     axisUppercase: false,
   );
 
-  // ── 2. Retro — Naval Chart ──────────────────────────────────────────────────
-  static final BoardStyleConfig _retro = BoardStyleConfig(
-    id: BoardVisualStyle.navalRetro,
-    boardBackground: const Color(0xFF0C1B30),
-    scanlines: false,
-    scanlineColor: const Color(0x00000000),
-    cellDefault: const CellVisual(
-      background: Color(0xFF122440),
-      borderColor: Color(0xFF284868),
-    ),
-    cellPath: const CellVisual(
-      background: Color(0xFF1A3050),
-      borderColor: Color(0xFF3A6090),
-    ),
-    cellHover: const CellVisual(
-      background: Color(0xFF1E3E5A),
-      borderColor: Color(0xFF5A8AB0),
-      borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x52508CB4), blurRadius: 12)],
-    ),
-    cellHit: const CellVisual(
-      background: Color(0xFFE86010),
-      borderColor: Color(0xFFFF8030),
-      borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x73F06414), blurRadius: 8)],
-    ),
-    cellSunk: const CellVisual(
-      background: Color(0xFFB04008),
-      borderColor: Color(0xFFE05010),
-      borderWidth: 1.5,
-      shadows: [
-        BoxShadow(color: Color(0x80F06414), blurRadius: 12, spreadRadius: 1),
-      ],
-    ),
-    cellMiss: const CellVisual(
-      background: Color(0xFFD0E8F8),
-      borderColor: Color(0xFFA8C8E8),
-    ),
-    cellBlocked: const CellVisual(
-      background: Color(0xFF081420),
-      borderColor: Color(0xFF162236),
-    ),
-    hitIcon: CellIconKind.burst8,
-    hitIconColor: const Color(0xFF1A0800),
-    missIcon: CellIconKind.wave,
-    missIconColor: const Color(0xFF0C1B30),
-    axisLabel: GoogleFonts.spaceMono(
-      fontSize: AppDimensions.axisFs,
-      fontWeight: FontWeight.w500,
-      color: const Color(0xFF3A5870),
-      letterSpacing: 0.025 * AppDimensions.axisFs,
-    ),
-    axisLabelActive: GoogleFonts.spaceMono(
-      fontSize: AppDimensions.axisFs,
-      fontWeight: FontWeight.w700,
-      color: const Color(0xFFC8A030),
-      letterSpacing: 0.025 * AppDimensions.axisFs,
-    ),
-    axisUppercase: false,
-  );
-
-  // ── 3. Fluffy — Candy Tiles ─────────────────────────────────────────────────
+  // ── 2. Fluffy — Candy Tiles ─────────────────────────────────────────────────
   static final BoardStyleConfig _fluffy = BoardStyleConfig(
     id: BoardVisualStyle.candyFluffy,
     boardBackground: const Color(0xFFFFF3F8),
@@ -330,66 +257,5 @@ class BoardStylePresets {
       letterSpacing: 0.025 * AppDimensions.axisFs,
     ),
     axisUppercase: false,
-  );
-
-  // ── 4. Futuristic — Grid Scan ───────────────────────────────────────────────
-  static final BoardStyleConfig _future = BoardStyleConfig(
-    id: BoardVisualStyle.gridScan,
-    boardBackground: const Color(0xFF000000),
-    scanlines: true,
-    scanlineColor: const Color(0x0A00FF64), // rgba(0,255,100,.04)
-    cellDefault: const CellVisual(
-      background: Color(0xFF000000),
-      borderColor: Color(0x3300FF88), // rgba(0,255,136,.20)
-    ),
-    cellPath: const CellVisual(
-      background: Color(0xFF001400),
-      borderColor: Color(0x8C00FF88), // rgba(0,255,136,.55)
-    ),
-    cellHover: const CellVisual(
-      background: Color(0xFF001C00),
-      borderColor: Color(0xFF00FF88),
-      borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x4700FF88), blurRadius: 16)],
-    ),
-    cellHit: const CellVisual(
-      background: Color(0xFF0C0000),
-      borderColor: Color(0xFFFF0066),
-      borderWidth: 1.5,
-      shadows: [BoxShadow(color: Color(0x73FF0050), blurRadius: 22)],
-    ),
-    cellSunk: const CellVisual(
-      background: Color(0xFF1A0008),
-      borderColor: Color(0xFFFF1480),
-      borderWidth: 1.5,
-      shadows: [
-        BoxShadow(color: Color(0x99FF0066), blurRadius: 22, spreadRadius: 1),
-      ],
-    ),
-    cellMiss: const CellVisual(
-      background: Color(0xFF000000),
-      borderColor: Color(0x7A00FF88), // rgba(0,255,136,.48)
-    ),
-    cellBlocked: const CellVisual(
-      background: Color(0xFF080808),
-      borderColor: Color(0x1200FF88), // rgba(0,255,136,.07)
-    ),
-    hitIcon: CellIconKind.radarBlip,
-    hitIconColor: const Color(0xFFFF0066),
-    missIcon: CellIconKind.miniDiamond,
-    missIconColor: const Color(0xB300FF88), // .7 alpha
-    axisLabel: GoogleFonts.rajdhani(
-      fontSize: AppDimensions.axisFs,
-      fontWeight: FontWeight.w500,
-      color: const Color(0x4700FF88), // rgba(0,255,136,.28)
-      letterSpacing: 0.08 * AppDimensions.axisFs,
-    ),
-    axisLabelActive: GoogleFonts.rajdhani(
-      fontSize: AppDimensions.axisFs,
-      fontWeight: FontWeight.w700,
-      color: const Color(0xFF00FF88),
-      letterSpacing: 0.08 * AppDimensions.axisFs,
-    ),
-    axisUppercase: true,
   );
 }

@@ -11,19 +11,19 @@ import 'package:word_battleship/widgets/game_board.dart';
 // ---------------------------------------------------------------------------
 
 List<List<Cell>> _makeBoard(int size) => List.generate(
-      size,
-      (r) => List.generate(
-        size,
-        (c) => Cell(
-          id: '$r-$c',
-          row: r,
-          col: c,
-          word: 'слово',
-          hasShip: false,
-          status: CellStatus.defaultValue,
-        ),
-      ),
-    );
+  size,
+  (r) => List.generate(
+    size,
+    (c) => Cell(
+      id: '$r-$c',
+      row: r,
+      col: c,
+      word: 'слово',
+      hasShip: false,
+      status: CellStatus.defaultValue,
+    ),
+  ),
+);
 
 const _testNouns = [
   NounEntry(word: 'кот', gender: WordGender.masculine),
@@ -39,19 +39,72 @@ const _testNouns = [
 ];
 
 const _testAdj = [
-  AdjectiveEntry(base: 'тихий', masculine: 'тихий', feminine: 'тихая', neuter: 'тихое'),
-  AdjectiveEntry(base: 'злой', masculine: 'злой', feminine: 'злая', neuter: 'злое'),
-  AdjectiveEntry(base: 'сонный', masculine: 'сонный', feminine: 'сонная', neuter: 'сонное'),
-  AdjectiveEntry(base: 'смелый', masculine: 'смелый', feminine: 'смелая', neuter: 'смелое'),
-  AdjectiveEntry(base: 'быстрый', masculine: 'быстрый', feminine: 'быстрая', neuter: 'быстрое'),
-  AdjectiveEntry(base: 'мокрый', masculine: 'мокрый', feminine: 'мокрая', neuter: 'мокрое'),
-  AdjectiveEntry(base: 'хитрый', masculine: 'хитрый', feminine: 'хитрая', neuter: 'хитрое'),
-  AdjectiveEntry(base: 'ленивый', masculine: 'ленивый', feminine: 'ленивая', neuter: 'ленивое'),
-  AdjectiveEntry(base: 'солёный', masculine: 'солёный', feminine: 'солёная', neuter: 'солёное'),
-  AdjectiveEntry(base: 'северный', masculine: 'северный', feminine: 'северная', neuter: 'северное'),
+  AdjectiveEntry(
+    base: 'тихий',
+    masculine: 'тихий',
+    feminine: 'тихая',
+    neuter: 'тихое',
+  ),
+  AdjectiveEntry(
+    base: 'злой',
+    masculine: 'злой',
+    feminine: 'злая',
+    neuter: 'злое',
+  ),
+  AdjectiveEntry(
+    base: 'сонный',
+    masculine: 'сонный',
+    feminine: 'сонная',
+    neuter: 'сонное',
+  ),
+  AdjectiveEntry(
+    base: 'смелый',
+    masculine: 'смелый',
+    feminine: 'смелая',
+    neuter: 'смелое',
+  ),
+  AdjectiveEntry(
+    base: 'быстрый',
+    masculine: 'быстрый',
+    feminine: 'быстрая',
+    neuter: 'быстрое',
+  ),
+  AdjectiveEntry(
+    base: 'мокрый',
+    masculine: 'мокрый',
+    feminine: 'мокрая',
+    neuter: 'мокрое',
+  ),
+  AdjectiveEntry(
+    base: 'хитрый',
+    masculine: 'хитрый',
+    feminine: 'хитрая',
+    neuter: 'хитрое',
+  ),
+  AdjectiveEntry(
+    base: 'ленивый',
+    masculine: 'ленивый',
+    feminine: 'ленивая',
+    neuter: 'ленивое',
+  ),
+  AdjectiveEntry(
+    base: 'солёный',
+    masculine: 'солёный',
+    feminine: 'солёная',
+    neuter: 'солёное',
+  ),
+  AdjectiveEntry(
+    base: 'северный',
+    masculine: 'северный',
+    feminine: 'северная',
+    neuter: 'северное',
+  ),
 ];
 
-Widget _gameBoardWidget({List<List<Cell>>? board, void Function(int, int, String)? onCellClick}) {
+Widget _gameBoardWidget({
+  List<List<Cell>>? board,
+  void Function(int, int, String)? onCellClick,
+}) {
   return MaterialApp(
     home: Scaffold(
       body: SizedBox(
@@ -63,7 +116,7 @@ Widget _gameBoardWidget({List<List<Cell>>? board, void Function(int, int, String
           rowAdjectives: _testAdj,
           interestCells: const {},
           onCellClick: onCellClick ?? (a, b, c) {},
-          style: BoardStylePresets.of(BoardStylePresets.defaultStyle),
+          style: BoardStylePresets.modernInk,
         ),
       ),
     ),
@@ -90,17 +143,18 @@ void main() {
   // Column headers: RotatedBox
   // -------------------------------------------------------------------------
 
-  testWidgets('column headers render nouns inside RotatedBox with quarterTurns 3', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_gameBoardWidget());
+  testWidgets(
+    'column headers render nouns inside RotatedBox with quarterTurns 3',
+    (tester) async {
+      await tester.pumpWidget(_gameBoardWidget());
 
-    final boxes = tester.widgetList<RotatedBox>(find.byType(RotatedBox));
-    expect(boxes, isNotEmpty);
-    for (final box in boxes) {
-      expect(box.quarterTurns, 3);
-    }
-  });
+      final boxes = tester.widgetList<RotatedBox>(find.byType(RotatedBox));
+      expect(boxes, isNotEmpty);
+      for (final box in boxes) {
+        expect(box.quarterTurns, 3);
+      }
+    },
+  );
 
   testWidgets('column header noun texts have no newlines', (tester) async {
     await tester.pumpWidget(_gameBoardWidget());
@@ -142,11 +196,15 @@ void main() {
   // Desktop: first tap fires immediately
   // -------------------------------------------------------------------------
 
-  testWidgets('desktop first tap on default cell fires immediately', (tester) async {
+  testWidgets('desktop first tap on default cell fires immediately', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     try {
       var fired = false;
-      await tester.pumpWidget(_gameBoardWidget(onCellClick: (_, col, word) => fired = true));
+      await tester.pumpWidget(
+        _gameBoardWidget(onCellClick: (_, col, word) => fired = true),
+      );
       await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
       expect(fired, isTrue);
@@ -159,15 +217,23 @@ void main() {
   // Mobile: single-tap fires immediately
   // -------------------------------------------------------------------------
 
-  testWidgets('mobile single tap on default cell fires immediately', (tester) async {
+  testWidgets('mobile single tap on default cell fires immediately', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     try {
       var fireCount = 0;
-      await tester.pumpWidget(_gameBoardWidget(onCellClick: (_, col, word) => fireCount++));
+      await tester.pumpWidget(
+        _gameBoardWidget(onCellClick: (_, col, word) => fireCount++),
+      );
 
       await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
-      expect(fireCount, 1, reason: 'Single tap must fire immediately on mobile');
+      expect(
+        fireCount,
+        1,
+        reason: 'Single tap must fire immediately on mobile',
+      );
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
@@ -181,17 +247,26 @@ void main() {
 
       var fired = false;
       await tester.pumpWidget(
-        _gameBoardWidget(board: board, onCellClick: (_, col, word) => fired = true),
+        _gameBoardWidget(
+          board: board,
+          onCellClick: (_, col, word) => fired = true,
+        ),
       );
       await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
-      expect(fired, isFalse, reason: 'Tapping a hit cell must not fire on mobile');
+      expect(
+        fired,
+        isFalse,
+        reason: 'Tapping a hit cell must not fire on mobile',
+      );
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
   });
 
-  testWidgets('mobile post-fire coordinate highlight clears after timer', (tester) async {
+  testWidgets('mobile post-fire coordinate highlight clears after timer', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     try {
       await tester.pumpWidget(_gameBoardWidget());
@@ -209,7 +284,9 @@ void main() {
   // Post-click highlight clears after timer
   // -------------------------------------------------------------------------
 
-  testWidgets('post-click highlight timer completes without error', (tester) async {
+  testWidgets('post-click highlight timer completes without error', (
+    tester,
+  ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.linux;
     try {
       await tester.pumpWidget(_gameBoardWidget());
@@ -235,7 +312,10 @@ void main() {
 
       var fired = false;
       await tester.pumpWidget(
-        _gameBoardWidget(board: board, onCellClick: (_, col, word) => fired = true),
+        _gameBoardWidget(
+          board: board,
+          onCellClick: (_, col, word) => fired = true,
+        ),
       );
       await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();
@@ -253,7 +333,10 @@ void main() {
 
       var fired = false;
       await tester.pumpWidget(
-        _gameBoardWidget(board: board, onCellClick: (_, col, word) => fired = true),
+        _gameBoardWidget(
+          board: board,
+          onCellClick: (_, col, word) => fired = true,
+        ),
       );
       await tester.tap(find.byType(GestureDetector).first);
       await tester.pump();

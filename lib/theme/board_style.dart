@@ -8,33 +8,23 @@ export 'board_style_presets.dart';
 // ═════════════════════════════════════════════════════════════════════════════
 // BoardVisualStyle
 //
-// Public selector for the visual look of the board. The game logic is
-// completely independent from the visual style — picking a different value here
-// only changes colors, borders, axis label typography, and the icons rendered
-// inside revealed cells. Geometry (cell size, gap, axis placement) stays the
-// same as the existing Modern look so adaptive layout is not affected.
-//
-// References: basics/Board Variants.html (4 themes).
+// Internal identifier stored on BoardStyleConfig. The game logic is completely
+// independent from the visual style — this value only names the preset so
+// painters and configs can be identified if needed.
 // ═════════════════════════════════════════════════════════════════════════════
 
 enum BoardVisualStyle {
   modernInk,
-  navalRetro,
-  candyFluffy,
-  gridScan;
+  candyFluffy;
 
   String get label => switch (this) {
     BoardVisualStyle.modernInk => 'Modern — Ink on Paper',
-    BoardVisualStyle.navalRetro => 'Retro — Naval Chart',
     BoardVisualStyle.candyFluffy => 'Fluffy — Candy Tiles',
-    BoardVisualStyle.gridScan => 'Futuristic — Grid Scan',
   };
 
   String get shortLabel => switch (this) {
     BoardVisualStyle.modernInk => 'Modern',
-    BoardVisualStyle.navalRetro => 'Retro',
     BoardVisualStyle.candyFluffy => 'Fluffy',
-    BoardVisualStyle.gridScan => 'Futuristic',
   };
 }
 

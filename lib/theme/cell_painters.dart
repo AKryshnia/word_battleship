@@ -3,19 +3,15 @@ import 'package:flutter/material.dart';
 // Kinds of icon drawn inside a revealed cell. Each style preset picks two:
 // one for hit/sunk and one for miss.
 enum CellIconKind {
-  // Two thick rounded diagonals — Modern hit. Mirrors basics/Board Variants.html
-  // `InkX` (viewBox 20×20, strokeWidth 3.6, strokeLinecap round).
+  // Two thick rounded diagonals — Modern/Graphite hit.
+  // Mirrors basics/Board Variants.html `InkX` (viewBox 20×20, strokeWidth 3.6).
   inkX,
-  // Crosshair (4 segments + center circle) — kept as a separate kind in case a
-  // future style wants the "scope" look. Not used by Modern anymore.
-  inkCross,
+  // Thin circle — Modern/Graphite miss.
   ring,
-  burst8,
-  wave,
+  // 4-point sparkle — Fluffy hit.
   sparkle,
+  // Teardrop — Fluffy miss.
   teardrop,
-  radarBlip,
-  miniDiamond,
 }
 
 // Returns a sensible fractional size for a cell-state icon.
@@ -25,21 +21,12 @@ double iconFractionFor(CellIconKind kind) {
   switch (kind) {
     case CellIconKind.inkX:
       return 0.50;
-    case CellIconKind.inkCross:
-      return 0.52;
     case CellIconKind.ring:
       return 0.50;
-    case CellIconKind.burst8:
     case CellIconKind.sparkle:
       return 0.62;
-    case CellIconKind.wave:
-      return 0.58;
     case CellIconKind.teardrop:
       return 0.46;
-    case CellIconKind.radarBlip:
-      return 0.78;
-    case CellIconKind.miniDiamond:
-      return 0.32;
   }
 }
 
@@ -58,29 +45,14 @@ class CellIconPainter extends CustomPainter {
       case CellIconKind.inkX:
         _paintInkX(canvas, size);
         break;
-      case CellIconKind.inkCross:
-        _paintInkCross(canvas, size);
-        break;
       case CellIconKind.ring:
         _paintRing(canvas, size);
-        break;
-      case CellIconKind.burst8:
-        _paintBurst8(canvas, size);
-        break;
-      case CellIconKind.wave:
-        _paintWave(canvas, size);
         break;
       case CellIconKind.sparkle:
         _paintSparkle(canvas, size);
         break;
       case CellIconKind.teardrop:
         _paintTeardrop(canvas, size);
-        break;
-      case CellIconKind.radarBlip:
-        _paintRadarBlip(canvas, size);
-        break;
-      case CellIconKind.miniDiamond:
-        _paintMiniDiamond(canvas, size);
         break;
     }
   }
@@ -94,31 +66,19 @@ class CellIconPainter extends CustomPainter {
       ..strokeWidth = 3.6 * f
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    canvas.drawLine(Offset(3.5 * f, 3.5 * f), Offset(16.5 * f, 16.5 * f), paint);
-    canvas.drawLine(Offset(16.5 * f, 3.5 * f), Offset(3.5 * f, 16.5 * f), paint);
+    canvas.drawLine(
+      Offset(3.5 * f, 3.5 * f),
+      Offset(16.5 * f, 16.5 * f),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(16.5 * f, 3.5 * f),
+      Offset(3.5 * f, 16.5 * f),
+      paint,
+    );
   }
 
-  // Crosshair: 4 segments + center circle. Kept available for any future
-  // theme that wants a "scope" mark — Modern no longer uses it.
-  void _paintInkCross(Canvas canvas, Size size) {
-    final f = size.width / 20;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.65 * f
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    canvas.drawLine(Offset(cx, 2.5 * f), Offset(cx, 7.0 * f), paint);
-    canvas.drawLine(Offset(cx, 13.0 * f), Offset(cx, 17.5 * f), paint);
-    canvas.drawLine(Offset(2.5 * f, cy), Offset(7.0 * f, cy), paint);
-    canvas.drawLine(Offset(13.0 * f, cy), Offset(17.5 * f, cy), paint);
-    canvas.drawCircle(Offset(cx, cy), 3.2 * f, paint);
-  }
-
-  // Modern: thin ring — viewBox 16×16, r=5.5, strokeWidth 1.5.
+  // Modern/Graphite: thin ring — viewBox 16×16, r=5.5, strokeWidth 1.5.
   void _paintRing(Canvas canvas, Size size) {
     final f = size.width / 16;
     final paint = Paint()
@@ -126,55 +86,6 @@ class CellIconPainter extends CustomPainter {
       ..strokeWidth = 1.5 * f
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(Offset(size.width / 2, size.height / 2), 5.5 * f, paint);
-  }
-
-  // Retro: 8-point burst — polygon, filled.
-  void _paintBurst8(Canvas canvas, Size size) {
-    final f = size.width / 20;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    const pts = <Offset>[
-      Offset(10, 1.5),
-      Offset(11.6, 7),
-      Offset(17.2, 4.8),
-      Offset(13.5, 9.5),
-      Offset(18.8, 10.8),
-      Offset(13.5, 12),
-      Offset(17.2, 16.5),
-      Offset(11.6, 14),
-      Offset(10, 19.5),
-      Offset(8.4, 14),
-      Offset(2.8, 16.5),
-      Offset(6.5, 12),
-      Offset(1.2, 10.8),
-      Offset(6.5, 9.5),
-      Offset(2.8, 4.8),
-      Offset(8.4, 7),
-    ];
-    final path = Path()..moveTo(pts.first.dx * f, pts.first.dy * f);
-    for (var i = 1; i < pts.length; i++) {
-      path.lineTo(pts[i].dx * f, pts[i].dy * f);
-    }
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  // Retro: wave — 18×14 viewBox; quadratic curves up/down.
-  void _paintWave(Canvas canvas, Size size) {
-    final fx = size.width / 18;
-    final fy = size.height / 14;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.4 * fx
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final path = Path()
-      ..moveTo(1 * fx, 7 * fy)
-      ..quadraticBezierTo(3.5 * fx, 2 * fy, 7 * fx, 7 * fy)
-      ..quadraticBezierTo(10.5 * fx, 12 * fy, 14 * fx, 7 * fy)
-      ..quadraticBezierTo(16 * fx, 4 * fy, 17 * fx, 7 * fy);
-    canvas.drawPath(path, paint);
   }
 
   // Fluffy: 4-point sparkle.
@@ -206,45 +117,12 @@ class CellIconPainter extends CustomPainter {
     final path = Path()
       ..moveTo(6.5 * fx, 1 * fy)
       ..quadraticBezierTo(11 * fx, 7 * fy, 11 * fx, 11 * fy)
-      ..arcToPoint(Offset(2 * fx, 11 * fy),
-          radius: Radius.elliptical(4.5 * fx, 4.5 * fy), clockwise: false)
+      ..arcToPoint(
+        Offset(2 * fx, 11 * fy),
+        radius: Radius.elliptical(4.5 * fx, 4.5 * fy),
+        clockwise: false,
+      )
       ..quadraticBezierTo(2 * fx, 7 * fy, 6.5 * fx, 1 * fy)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  // Futuristic: radar blip — solid center + 2 fading rings.
-  void _paintRadarBlip(Canvas canvas, Size size) {
-    final f = size.width / 20;
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final fill = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(cx, cy), 2.5 * f, fill);
-    final ring1 = Paint()
-      ..color = color.withValues(alpha: 0.55)
-      ..strokeWidth = 1 * f
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(Offset(cx, cy), 5.5 * f, ring1);
-    final ring2 = Paint()
-      ..color = color.withValues(alpha: 0.22)
-      ..strokeWidth = 0.8 * f
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(Offset(cx, cy), 8.5 * f, ring2);
-  }
-
-  // Futuristic: small diamond marker.
-  void _paintMiniDiamond(Canvas canvas, Size size) {
-    final f = size.width / 10;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    final path = Path()
-      ..moveTo(5 * f, 0.5 * f)
-      ..lineTo(9.5 * f, 5 * f)
-      ..lineTo(5 * f, 9.5 * f)
-      ..lineTo(0.5 * f, 5 * f)
       ..close();
     canvas.drawPath(path, paint);
   }
