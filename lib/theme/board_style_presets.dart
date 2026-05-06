@@ -17,6 +17,9 @@ class BoardStylePresets {
 
   static const BoardVisualStyle defaultStyle = BoardVisualStyle.modernInk;
 
+  static final BoardStyleConfig modernInk = _modern;
+  static final BoardStyleConfig fluffy = _fluffy;
+
   static BoardStyleConfig of(BoardVisualStyle style) {
     switch (style) {
       case BoardVisualStyle.modernInk:
