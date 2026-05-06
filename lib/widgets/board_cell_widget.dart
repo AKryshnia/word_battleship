@@ -43,20 +43,26 @@ class BoardCellWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final visual = _resolveVisual();
     final isInterestOverlay =
-        isInterestCell && cell.status == CellStatus.defaultValue && !isActiveCell;
+        isInterestCell &&
+        cell.status == CellStatus.defaultValue &&
+        !isActiveCell;
 
     final radius = BorderRadius.circular(AppDimensions.radiusCell);
 
     return Container(
       decoration: BoxDecoration(
-        color: isInterestOverlay ? AppColors.accentFaint : visual.background,
+        color: isInterestOverlay
+            ? style.cellInterest.background
+            : visual.background,
         borderRadius: radius,
         border: Border.all(
-          color: isInterestOverlay ? AppColors.accentMid : visual.borderColor,
+          color: isInterestOverlay
+              ? style.cellInterest.borderColor
+              : visual.borderColor,
           width: visual.borderWidth,
         ),
         boxShadow: isInterestOverlay
-            ? const [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)]
+            ? style.cellInterest.shadows
             : visual.shadows,
       ),
       child: Stack(

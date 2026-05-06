@@ -95,6 +95,7 @@ class BoardStyleConfig {
   final CellVisual cellDefault;
   final CellVisual cellPath;
   final CellVisual cellHover;
+  final CellVisual cellInterest;
   final CellVisual cellHit;
   final CellVisual cellSunk;
   final CellVisual cellMiss;
@@ -122,6 +123,11 @@ class BoardStyleConfig {
     required this.cellDefault,
     required this.cellPath,
     required this.cellHover,
+    this.cellInterest = const CellVisual(
+      background: AppColors.accentFaint,
+      borderColor: AppColors.accentMid,
+      shadows: [BoxShadow(color: AppColors.accentFaint, blurRadius: 8)],
+    ),
     required this.cellHit,
     required this.cellSunk,
     required this.cellMiss,
@@ -162,6 +168,68 @@ class BoardStylePresets {
         return _future;
     }
   }
+
+  static final BoardStyleConfig graphiteInk = BoardStyleConfig(
+    id: BoardVisualStyle.modernInk,
+    boardBackground: const Color(0xFF1C1B19),
+    scanlines: false,
+    scanlineColor: const Color(0x00000000),
+    cellDefault: const CellVisual(
+      background: Color(0xFF26261F),
+      borderColor: Color(0xFF3A3A37),
+    ),
+    cellPath: const CellVisual(
+      background: Color(0xFF2E2E26),
+      borderColor: Color(0xFF454540),
+    ),
+    cellHover: const CellVisual(
+      background: Color(0xFF3A3528),
+      borderColor: Color(0xFFE2A340),
+      borderWidth: 1.5,
+      shadows: [BoxShadow(color: Color(0x47E2A340), blurRadius: 14)],
+    ),
+    cellInterest: const CellVisual(
+      background: Color(0x1C3FB6B0),
+      borderColor: Color(0x4D3FB6B0),
+      shadows: [BoxShadow(color: Color(0x333FB6B0), blurRadius: 8)],
+    ),
+    cellHit: const CellVisual(
+      background: Color(0xFF0E0E0C),
+      borderColor: Color(0xFF000000),
+    ),
+    cellSunk: const CellVisual(
+      background: Color(0xFF0E0E0C),
+      borderColor: Color(0xFF000000),
+      shadows: [BoxShadow(color: Color(0x52DC5A32), spreadRadius: 2)],
+    ),
+    cellMiss: const CellVisual(
+      background: Color(0xFF26261F),
+      borderColor: Color(0xFF464640),
+    ),
+    cellBlocked: const CellVisual(
+      background: Color(0xFF1E1E1C),
+      borderColor: Color(0xFF2E2E2C),
+      hatchColor: Color(0xFF34342F),
+    ),
+    hitIcon: CellIconKind.inkX,
+    hitIconColor: const Color(0xFFFFF8E6),
+    missIcon: CellIconKind.ring,
+    missIconColor: const Color(0xFF8A8375),
+    axisLabel: GoogleFonts.manrope(
+      fontSize: AppDimensions.axisFs,
+      fontWeight: FontWeight.w500,
+      color: const Color(0xFFA0998A),
+      letterSpacing: 0.025 * AppDimensions.axisFs,
+    ),
+    axisLabelActive: GoogleFonts.manrope(
+      fontSize: AppDimensions.axisFs,
+      fontWeight: FontWeight.w700,
+      color: const Color(0xFFE2A340),
+      letterSpacing: 0.025 * AppDimensions.axisFs,
+    ),
+    axisFontScale: 1.1,
+    axisUppercase: false,
+  );
 
   // ── 1. Modern — Ink on Paper ────────────────────────────────────────────────
   // Faithful port of the HTML reference T_MODERN preset. Self-contained color

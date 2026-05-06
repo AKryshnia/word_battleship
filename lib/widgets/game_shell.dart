@@ -34,9 +34,11 @@ class GameShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final styleConfig = BoardStylePresets.of(boardStyle);
-    final tokens = context.wbTokens;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final styleConfig = isDark
+        ? BoardStylePresets.graphiteInk
+        : BoardStylePresets.of(boardStyle);
+    final tokens = context.wbTokens;
 
     return Container(
       clipBehavior: Clip.hardEdge,
