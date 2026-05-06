@@ -22,7 +22,6 @@ class BoardStylePresets {
   static final BoardStyleConfig fluffy = _fluffy;
 
   static final BoardStyleConfig graphiteInk = BoardStyleConfig(
-    id: BoardVisualStyle.modernInk,
     boardBackground: const Color(0xFF1C1B19),
     scanlines: false,
     scanlineColor: const Color(0x00000000),
@@ -90,7 +89,6 @@ class BoardStylePresets {
   // calls for crisp black-on-white ink. AppColors stays untouched so the rest
   // of the UI (HUD, event strip) keeps its warm tone.
   static final BoardStyleConfig _modern = BoardStyleConfig(
-    id: BoardVisualStyle.modernInk,
     boardBackground: const Color(0xFFF5F0E6),
     scanlines: false,
     scanlineColor: const Color(0x00000000),
@@ -159,7 +157,6 @@ class BoardStylePresets {
 
   // ── 2. Fluffy — Candy Tiles ─────────────────────────────────────────────────
   static final BoardStyleConfig _fluffy = BoardStyleConfig(
-    id: BoardVisualStyle.candyFluffy,
     boardBackground: const Color(0xFFFFF3F8),
     scanlines: false,
     scanlineColor: const Color(0x00000000),

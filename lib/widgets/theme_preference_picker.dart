@@ -4,24 +4,24 @@ import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
 import '../theme/theme_variant.dart';
 
-// Style picker button — palette icon that opens a compact popup menu listing
-// the 4 theme preferences. Current selection is shown with a check; tapping any
-// entry applies the preference immediately via [onSelected].
-class HudStylePicker extends StatefulWidget {
+// Theme preference picker — palette icon that opens a compact popup menu
+// listing the 4 theme preferences. Current selection is shown with a check;
+// tapping any entry applies the preference immediately via [onSelected].
+class ThemePreferencePicker extends StatefulWidget {
   final WordBattleThemePreference current;
   final ValueChanged<WordBattleThemePreference> onSelected;
 
-  const HudStylePicker({
+  const ThemePreferencePicker({
     super.key,
     required this.current,
     required this.onSelected,
   });
 
   @override
-  State<HudStylePicker> createState() => _HudStylePickerState();
+  State<ThemePreferencePicker> createState() => _ThemePreferencePickerState();
 }
 
-class _HudStylePickerState extends State<HudStylePicker> {
+class _ThemePreferencePickerState extends State<ThemePreferencePicker> {
   bool _hovered = false;
 
   @override

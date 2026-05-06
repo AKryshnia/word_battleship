@@ -6,29 +6,6 @@ export 'cell_painters.dart';
 export 'board_style_presets.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// BoardVisualStyle
-//
-// Internal identifier stored on BoardStyleConfig. The game logic is completely
-// independent from the visual style — this value only names the preset so
-// painters and configs can be identified if needed.
-// ═════════════════════════════════════════════════════════════════════════════
-
-enum BoardVisualStyle {
-  modernInk,
-  candyFluffy;
-
-  String get label => switch (this) {
-    BoardVisualStyle.modernInk => 'Modern — Ink on Paper',
-    BoardVisualStyle.candyFluffy => 'Fluffy — Candy Tiles',
-  };
-
-  String get shortLabel => switch (this) {
-    BoardVisualStyle.modernInk => 'Modern',
-    BoardVisualStyle.candyFluffy => 'Fluffy',
-  };
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
 // CellVisual — colors + border for a single cell state.
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -72,8 +49,6 @@ class CellVisual {
 
 @immutable
 class BoardStyleConfig {
-  final BoardVisualStyle id;
-
   // Background of the board "mat" — the area inside the shell, behind cells.
   final Color boardBackground;
 
@@ -102,11 +77,10 @@ class BoardStyleConfig {
   final TextStyle axisLabelActive;
   final double axisFontScale;
 
-  // Whether axis labels should be uppercased (Futuristic).
+  // Whether axis labels should be uppercased.
   final bool axisUppercase;
 
   const BoardStyleConfig({
-    required this.id,
     required this.boardBackground,
     required this.scanlines,
     required this.scanlineColor,

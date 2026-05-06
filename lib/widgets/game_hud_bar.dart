@@ -4,7 +4,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_variant.dart';
 import 'hud_stats.dart';
-import 'hud_style_picker.dart';
+import 'theme_preference_picker.dart';
 import 'new_game_button.dart';
 import 'word_battle_logo.dart';
 
@@ -117,7 +117,7 @@ class GameHudBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              HudStylePicker(
+              ThemePreferencePicker(
                 current: currentThemePreference,
                 onSelected: onThemePreferenceChanged,
               ),
@@ -180,7 +180,7 @@ class GameHudBar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                HudStylePicker(
+                ThemePreferencePicker(
                   current: currentThemePreference,
                   onSelected: onThemePreferenceChanged,
                 ),
