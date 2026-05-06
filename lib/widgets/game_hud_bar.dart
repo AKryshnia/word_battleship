@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
 import '../utils/plural_ru.dart';
 import 'hud_style_picker.dart';
+import 'new_game_button.dart';
 import 'word_battle_logo.dart';
 
 /// Compact top bar inside the shell.
@@ -118,7 +119,7 @@ class GameHudBar extends StatelessWidget {
               const SizedBox(width: 6),
               HudStylePicker(current: currentStyle, onSelected: onStyleChange),
               const SizedBox(width: 6),
-              SizedBox(height: 32, child: _NewGameButton(onPressed: onReset)),
+              SizedBox(height: 32, child: NewGameButton(onPressed: onReset)),
             ],
           ),
         ],
@@ -181,7 +182,7 @@ class GameHudBar extends StatelessWidget {
                   onSelected: onStyleChange,
                 ),
                 const SizedBox(width: 4),
-                _NewGameButton(onPressed: onReset),
+                NewGameButton(onPressed: onReset),
               ],
             ),
           ),
@@ -360,53 +361,6 @@ class _HudStatItem extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-// ─────────────────────────────────────────────────────────────────────────────
-// "Новая игра" button
-// ─────────────────────────────────────────────────────────────────────────────
-
-// B · Soft fill: desaturated teal tint bg, dark-teal text, no border.
-class _NewGameButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _NewGameButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fg = isDark ? const Color(0xFF7CD4CE) : const Color(0xFF1A4F4C);
-    final border = isDark ? const Color(0x333FB6B0) : Colors.transparent;
-    final style = TextButton.styleFrom(
-      backgroundColor: isDark ? null : const Color(0xFFD6EEEB),
-      foregroundColor: fg,
-      overlayColor: isDark ? Colors.transparent : fg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-        side: BorderSide(color: border),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      minimumSize: Size.zero,
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    );
-
-    return TextButton(
-      onPressed: onPressed,
-      style: isDark
-          ? style.copyWith(
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.pressed)) {
-                  return const Color(0x4D3FB6B0);
-                }
-                if (states.contains(WidgetState.hovered) ||
-                    states.contains(WidgetState.focused)) {
-                  return const Color(0x383FB6B0);
-                }
-                return const Color(0x243FB6B0);
-              }),
-            )
-          : style,
-      child: Text('Новая игра', style: AppTextStyles.newGameButton),
     );
   }
 }
