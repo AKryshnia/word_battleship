@@ -25,9 +25,8 @@ class _HudStylePickerState extends State<HudStylePicker> {
 
   @override
   Widget build(BuildContext context) {
-    // default: brand accent #3FB6B0 — matches "Battle" in logo
-    // hover: ~75 % brightness of accent — visibly darker, still teal
-    final iconColor = _hovered ? const Color(0xFF2A9490) : AppColors.accent;
+    final tokens = context.wbTokens;
+    final iconColor = _hovered ? tokens.accentHover : tokens.accent;
 
     return MouseRegion(
       onEnter: (_) {
@@ -42,19 +41,22 @@ class _HudStylePickerState extends State<HudStylePicker> {
         onSelected: widget.onSelected,
         offset: const Offset(0, 36),
         position: PopupMenuPosition.under,
-        color: AppColors.surface,
+        color: tokens.surface2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: tokens.border),
         ),
         itemBuilder: (context) => [
           for (final style in BoardVisualStyle.values)
             PopupMenuItem<BoardVisualStyle>(
               value: style,
               height: 40,
-              child: _StyleMenuRow(
-                style: style,
+              child: _StyleMenuItem(
                 isSelected: style == widget.current,
+                child: _StyleMenuRow(
+                  style: style,
+                  isSelected: style == widget.current,
+                ),
               ),
             ),
         ],
@@ -62,13 +64,54 @@ class _HudStylePickerState extends State<HudStylePicker> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.surface2,
+            color: tokens.surface2,
             borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-            border: Border.all(color: AppColors.borderSubtle),
+            border: Border.all(color: tokens.border),
           ),
           alignment: Alignment.center,
           child: Icon(Icons.style_outlined, size: 17, color: iconColor),
         ),
+      ),
+    );
+  }
+}
+
+class _StyleMenuItem extends StatefulWidget {
+  final bool isSelected;
+  final Widget child;
+
+  const _StyleMenuItem({required this.isSelected, required this.child});
+
+  @override
+  State<_StyleMenuItem> createState() => _StyleMenuItemState();
+}
+
+class _StyleMenuItemState extends State<_StyleMenuItem> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (!isDark) return widget.child;
+
+    final bg = widget.isSelected
+        ? const Color(0x243FB6B0)
+        : (_hovered ? context.wbTokens.surface3 : Colors.transparent);
+
+    return MouseRegion(
+      onEnter: (_) {
+        if (mounted) setState(() => _hovered = true);
+      },
+      onExit: (_) {
+        if (mounted) setState(() => _hovered = false);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: widget.child,
       ),
     );
   }
@@ -91,13 +134,13 @@ class _StyleMenuRow extends StatelessWidget {
         Text(
           style.label,
           style: AppTextStyles.hudStatus.copyWith(
-            color: AppColors.text1,
+            color: context.wbTokens.text1,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
         const SizedBox(width: 12),
         if (isSelected)
-          const Icon(Icons.check, size: 16, color: AppColors.accent)
+          Icon(Icons.check, size: 16, color: context.wbTokens.accent)
         else
           const SizedBox(width: 16),
       ],
@@ -116,7 +159,7 @@ class _StyleSwatch extends StatelessWidget {
       decoration: BoxDecoration(
         color: config.boardBackground,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: context.wbTokens.borderSubtle),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

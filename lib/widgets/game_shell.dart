@@ -35,25 +35,29 @@ class GameShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final styleConfig = BoardStylePresets.of(boardStyle);
+    final tokens = context.wbTokens;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(AppDimensions.radiusShell),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F142864), // rgba(20,40,100,.06)
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-          BoxShadow(
-            color: Color(0x14142864), // rgba(20,40,100,.08)
-            blurRadius: 32,
-            offset: Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: tokens.border),
+        boxShadow: isDark
+            ? const []
+            : const [
+                BoxShadow(
+                  color: Color(0x0F142864), // rgba(20,40,100,.06)
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+                BoxShadow(
+                  color: Color(0x14142864), // rgba(20,40,100,.08)
+                  blurRadius: 32,
+                  offset: Offset(0, 8),
+                ),
+              ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -132,7 +136,7 @@ class GameShell extends StatelessWidget {
             ),
             Container(height: gap, color: styleConfig.boardBackground),
             MoveLogBar(moves: gameState.lastMoves, maxHeight: availableForLog),
-            Expanded(child: Container(color: AppColors.surface)),
+            Expanded(child: Container(color: context.wbTokens.surface)),
           ],
         );
       },

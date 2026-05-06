@@ -63,6 +63,11 @@ abstract final class AppColors {
   static const statusWon = Color(0xFF1A9E60);
 }
 
+extension WordBattleTheme on BuildContext {
+  WordBattleThemeTokens get wbTokens =>
+      Theme.of(this).extension<WordBattleThemeTokens>()!;
+}
+
 @immutable
 class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
   final Color background;

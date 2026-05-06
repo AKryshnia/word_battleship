@@ -45,6 +45,7 @@ class GameHudBar extends StatelessWidget {
       builder: (context, constraints) {
         if (constraints.maxWidth < 480) {
           return _buildMobileHud(
+            context,
             isFinished,
             moves,
             hits,
@@ -52,7 +53,14 @@ class GameHudBar extends StatelessWidget {
             totalShips,
           );
         }
-        return _buildDesktopHud(isFinished, moves, hits, shipsLeft, totalShips);
+        return _buildDesktopHud(
+          context,
+          isFinished,
+          moves,
+          hits,
+          shipsLeft,
+          totalShips,
+        );
       },
     );
   }
@@ -60,17 +68,21 @@ class GameHudBar extends StatelessWidget {
   // ── Desktop: single 54 px row ─────────────────────────────────────────────
 
   Widget _buildDesktopHud(
+    BuildContext context,
     bool isFinished,
     int moves,
     int hits,
     int shipsLeft,
     int totalShips,
   ) {
+    final tokens = context.wbTokens;
+
     return Container(
       height: AppDimensions.hudHeight,
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.shellPadH),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        border: Border(bottom: BorderSide(color: tokens.borderSubtle)),
       ),
       child: Row(
         children: [
@@ -117,12 +129,15 @@ class GameHudBar extends StatelessWidget {
   // ── Mobile: two rows ──────────────────────────────────────────────────────
 
   Widget _buildMobileHud(
+    BuildContext context,
     bool isFinished,
     int moves,
     int hits,
     int shipsLeft,
     int totalShips,
   ) {
+    final tokens = context.wbTokens;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,7 +189,7 @@ class GameHudBar extends StatelessWidget {
         // Row 2: stats on surface2 background
         Container(
           height: 26,
-          color: AppColors.surface2,
+          color: tokens.surface2,
           padding: const EdgeInsets.symmetric(
             horizontal: AppDimensions.shellPadH,
           ),
@@ -208,7 +223,7 @@ class _Pipe extends StatelessWidget {
     return Container(
       width: 1,
       height: 14,
-      color: AppColors.border,
+      color: context.wbTokens.border,
       margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
     );
   }
@@ -225,10 +240,11 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dotColor = isFinished ? AppColors.statusWon : AppColors.accent;
+    final tokens = context.wbTokens;
+    final dotColor = isFinished ? tokens.green : tokens.accent;
     final haloColor = isFinished
-        ? const Color(0x1F1A9E60)
-        : AppColors.accentFaint;
+        ? tokens.green.withValues(alpha: 0.12)
+        : tokens.accentFaint;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -248,7 +264,7 @@ class _StatusRow extends StatelessWidget {
             isFinished
                 ? (compact ? 'Завершена' : 'Игра завершена')
                 : 'Игра идёт',
-            style: AppTextStyles.hudStatus,
+            style: AppTextStyles.hudStatus.copyWith(color: tokens.text2),
             maxLines: 1,
             overflow: TextOverflow.clip,
             softWrap: false,
@@ -318,8 +334,10 @@ class _HudStatItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: hasDivider
-          ? const BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.borderSubtle)),
+          ? BoxDecoration(
+              border: Border(
+                right: BorderSide(color: context.wbTokens.borderSubtle),
+              ),
             )
           : null,
       child: Row(
@@ -327,9 +345,19 @@ class _HudStatItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Text(value, style: AppTextStyles.hudStatNum),
+          Text(
+            value,
+            style: AppTextStyles.hudStatNum.copyWith(
+              color: context.wbTokens.text1,
+            ),
+          ),
           const SizedBox(width: 4),
-          Text(label, style: AppTextStyles.hudStatLabel),
+          Text(
+            label,
+            style: AppTextStyles.hudStatLabel.copyWith(
+              color: context.wbTokens.text3,
+            ),
+          ),
         ],
       ),
     );
@@ -344,25 +372,40 @@ class _NewGameButton extends StatelessWidget {
   final VoidCallback onPressed;
   const _NewGameButton({required this.onPressed});
 
-  // background: #D6EEEB  hover/pressed: ~#C8E8E5 (Flutter applies 8/10 % opacity of _fg)
-  static const _bg = Color(0xFFD6EEEB);
-  static const _fg = Color(0xFF1A4F4C);
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = isDark ? const Color(0xFF7CD4CE) : const Color(0xFF1A4F4C);
+    final border = isDark ? const Color(0x333FB6B0) : Colors.transparent;
+    final style = TextButton.styleFrom(
+      backgroundColor: isDark ? null : const Color(0xFFD6EEEB),
+      foregroundColor: fg,
+      overlayColor: isDark ? Colors.transparent : fg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+        side: BorderSide(color: border),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      minimumSize: Size.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+
     return TextButton(
       onPressed: onPressed,
-      style: TextButton.styleFrom(
-        backgroundColor: _bg,
-        foregroundColor: _fg,
-        overlayColor: _fg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
+      style: isDark
+          ? style.copyWith(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return const Color(0x4D3FB6B0);
+                }
+                if (states.contains(WidgetState.hovered) ||
+                    states.contains(WidgetState.focused)) {
+                  return const Color(0x383FB6B0);
+                }
+                return const Color(0x243FB6B0);
+              }),
+            )
+          : style,
       child: Text('Новая игра', style: AppTextStyles.newGameButton),
     );
   }

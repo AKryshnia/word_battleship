@@ -31,12 +31,26 @@ class WordBattleLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.wbTokens;
     final fontSize = markSize * 0.56;
+    final mark = WordBattleMark(size: markSize);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        WordBattleMark(size: markSize),
+        isDark
+            ? Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(color: tokens.borderSubtle),
+                ),
+                child: mark,
+              )
+            : mark,
         SizedBox(width: markSize * 0.33),
         Flexible(
           child: Text.rich(
@@ -44,12 +58,13 @@ class WordBattleLogo extends StatelessWidget {
               style: AppTextStyles.hudBrand.copyWith(
                 fontSize: fontSize,
                 letterSpacing: -0.02 * fontSize,
+                color: tokens.text1,
               ),
-              children: const [
-                TextSpan(text: 'Word'),
+              children: [
+                const TextSpan(text: 'Word'),
                 TextSpan(
                   text: 'Battle',
-                  style: TextStyle(color: AppColors.accent),
+                  style: TextStyle(color: tokens.accent),
                 ),
               ],
             ),
