@@ -47,6 +47,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
   final Color moveLogHitChipBackground;
   final Color moveLogHitChipBorder;
   final Color moveLogHitChipText;
+  final Color newGameButtonBackground;
+  final Color newGameButtonHoverBackground;
+  final Color newGameButtonPressedBackground;
+  final Color newGameButtonText;
+  final Color newGameButtonBorder;
 
   const WordBattleThemeTokens({
     required this.background,
@@ -89,6 +94,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     required this.moveLogHitChipBackground,
     required this.moveLogHitChipBorder,
     required this.moveLogHitChipText,
+    required this.newGameButtonBackground,
+    required this.newGameButtonHoverBackground,
+    required this.newGameButtonPressedBackground,
+    required this.newGameButtonText,
+    required this.newGameButtonBorder,
   });
 
   static const light = WordBattleThemeTokens(
@@ -132,6 +142,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     moveLogHitChipBackground: Color(0x14C05C3C),
     moveLogHitChipBorder: Color(0x28C05C3C),
     moveLogHitChipText: Color(0xFF9A4428),
+    newGameButtonBackground: Color(0xFFD6EEEB),
+    newGameButtonHoverBackground: Color(0xFFC4E5E1),
+    newGameButtonPressedBackground: Color(0xFFB5DAD6),
+    newGameButtonText: Color(0xFF1A4F4C),
+    newGameButtonBorder: Colors.transparent,
   );
 
   static const dark = WordBattleThemeTokens(
@@ -175,6 +190,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     moveLogHitChipBackground: Color(0x1C3FB6B0),
     moveLogHitChipBorder: Color(0x423FB6B0),
     moveLogHitChipText: Color(0xFF7CD4CE),
+    newGameButtonBackground: Color(0x243FB6B0),
+    newGameButtonHoverBackground: Color(0x383FB6B0),
+    newGameButtonPressedBackground: Color(0x4D3FB6B0),
+    newGameButtonText: Color(0xFF7CD4CE),
+    newGameButtonBorder: Color(0x333FB6B0),
   );
 
   static const fluffy = WordBattleThemeTokens(
@@ -218,6 +238,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     moveLogHitChipBackground: Color(0x14E6478E),
     moveLogHitChipBorder: Color(0x28E6478E),
     moveLogHitChipText: Color(0xFF8A1E52),
+    newGameButtonBackground: Color(0xFFFBDCE8),
+    newGameButtonHoverBackground: Color(0xFFF7C4D8),
+    newGameButtonPressedBackground: Color(0xFFEFA7C4),
+    newGameButtonText: Color(0xFF8A1E52),
+    newGameButtonBorder: Colors.transparent,
   );
 
   @override
@@ -262,6 +287,11 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     Color? moveLogHitChipBackground,
     Color? moveLogHitChipBorder,
     Color? moveLogHitChipText,
+    Color? newGameButtonBackground,
+    Color? newGameButtonHoverBackground,
+    Color? newGameButtonPressedBackground,
+    Color? newGameButtonText,
+    Color? newGameButtonBorder,
   }) {
     return WordBattleThemeTokens(
       background: background ?? this.background,
@@ -307,6 +337,14 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
           moveLogHitChipBackground ?? this.moveLogHitChipBackground,
       moveLogHitChipBorder: moveLogHitChipBorder ?? this.moveLogHitChipBorder,
       moveLogHitChipText: moveLogHitChipText ?? this.moveLogHitChipText,
+      newGameButtonBackground:
+          newGameButtonBackground ?? this.newGameButtonBackground,
+      newGameButtonHoverBackground:
+          newGameButtonHoverBackground ?? this.newGameButtonHoverBackground,
+      newGameButtonPressedBackground:
+          newGameButtonPressedBackground ?? this.newGameButtonPressedBackground,
+      newGameButtonText: newGameButtonText ?? this.newGameButtonText,
+      newGameButtonBorder: newGameButtonBorder ?? this.newGameButtonBorder,
     );
   }
 
@@ -395,6 +433,31 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
       moveLogHitChipText: Color.lerp(
         moveLogHitChipText,
         other.moveLogHitChipText,
+        t,
+      )!,
+      newGameButtonBackground: Color.lerp(
+        newGameButtonBackground,
+        other.newGameButtonBackground,
+        t,
+      )!,
+      newGameButtonHoverBackground: Color.lerp(
+        newGameButtonHoverBackground,
+        other.newGameButtonHoverBackground,
+        t,
+      )!,
+      newGameButtonPressedBackground: Color.lerp(
+        newGameButtonPressedBackground,
+        other.newGameButtonPressedBackground,
+        t,
+      )!,
+      newGameButtonText: Color.lerp(
+        newGameButtonText,
+        other.newGameButtonText,
+        t,
+      )!,
+      newGameButtonBorder: Color.lerp(
+        newGameButtonBorder,
+        other.newGameButtonBorder,
         t,
       )!,
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../theme/app_theme.dart';
-import '../theme/board_style.dart';
+import '../theme/theme_variant.dart';
 import 'hud_stats.dart';
 import 'hud_style_picker.dart';
 import 'new_game_button.dart';
@@ -23,15 +23,15 @@ import 'word_battle_logo.dart';
 class GameHudBar extends StatelessWidget {
   final SoloGameState gameState;
   final VoidCallback onReset;
-  final BoardVisualStyle currentStyle;
-  final ValueChanged<BoardVisualStyle> onStyleChange;
+  final WordBattleThemePreference currentThemePreference;
+  final ValueChanged<WordBattleThemePreference> onThemePreferenceChanged;
 
   const GameHudBar({
     super.key,
     required this.gameState,
     required this.onReset,
-    required this.currentStyle,
-    required this.onStyleChange,
+    required this.currentThemePreference,
+    required this.onThemePreferenceChanged,
   });
 
   @override
@@ -117,7 +117,10 @@ class GameHudBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              HudStylePicker(current: currentStyle, onSelected: onStyleChange),
+              HudStylePicker(
+                current: currentThemePreference,
+                onSelected: onThemePreferenceChanged,
+              ),
               const SizedBox(width: 6),
               SizedBox(height: 32, child: NewGameButton(onPressed: onReset)),
             ],
@@ -178,8 +181,8 @@ class GameHudBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 HudStylePicker(
-                  current: currentStyle,
-                  onSelected: onStyleChange,
+                  current: currentThemePreference,
+                  onSelected: onThemePreferenceChanged,
                 ),
                 const SizedBox(width: 4),
                 NewGameButton(onPressed: onReset),

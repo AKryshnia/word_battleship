@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
+import '../theme/theme_variant.dart';
 
 // Style picker button — palette icon that opens a compact popup menu listing
-// the 4 visual styles. Current selection is shown with a check; tapping any
-// entry applies the style immediately via [onSelected].
+// the 4 theme preferences. Current selection is shown with a check; tapping any
+// entry applies the preference immediately via [onSelected].
 class HudStylePicker extends StatefulWidget {
-  final BoardVisualStyle current;
-  final ValueChanged<BoardVisualStyle> onSelected;
+  final WordBattleThemePreference current;
+  final ValueChanged<WordBattleThemePreference> onSelected;
 
   const HudStylePicker({
     super.key,
@@ -35,8 +36,8 @@ class _HudStylePickerState extends State<HudStylePicker> {
       onExit: (_) {
         if (mounted) setState(() => _hovered = false);
       },
-      child: PopupMenuButton<BoardVisualStyle>(
-        tooltip: 'Стиль поля',
+      child: PopupMenuButton<WordBattleThemePreference>(
+        tooltip: 'Тема',
         initialValue: widget.current,
         onSelected: widget.onSelected,
         offset: const Offset(0, 36),
@@ -47,15 +48,15 @@ class _HudStylePickerState extends State<HudStylePicker> {
           side: BorderSide(color: tokens.border),
         ),
         itemBuilder: (context) => [
-          for (final style in BoardVisualStyle.values)
-            PopupMenuItem<BoardVisualStyle>(
-              value: style,
+          for (final pref in WordBattleThemePreference.values)
+            PopupMenuItem<WordBattleThemePreference>(
+              value: pref,
               height: 40,
               child: _StyleMenuItem(
-                isSelected: style == widget.current,
+                isSelected: pref == widget.current,
                 child: _StyleMenuRow(
-                  style: style,
-                  isSelected: style == widget.current,
+                  pref: pref,
+                  isSelected: pref == widget.current,
                 ),
               ),
             ),
@@ -118,21 +119,21 @@ class _StyleMenuItemState extends State<_StyleMenuItem> {
 }
 
 class _StyleMenuRow extends StatelessWidget {
-  final BoardVisualStyle style;
+  final WordBattleThemePreference pref;
   final bool isSelected;
 
-  const _StyleMenuRow({required this.style, required this.isSelected});
+  const _StyleMenuRow({required this.pref, required this.isSelected});
 
   @override
   Widget build(BuildContext context) {
-    final cfg = BoardStylePresets.of(style);
+    final cfg = _swatchConfig(pref);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _StyleSwatch(config: cfg),
         const SizedBox(width: 10),
         Text(
-          style.label,
+          pref.label,
           style: AppTextStyles.hudStatus.copyWith(
             color: context.wbTokens.text1,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -146,6 +147,19 @@ class _StyleMenuRow extends StatelessWidget {
       ],
     );
   }
+}
+
+BoardStyleConfig _swatchConfig(WordBattleThemePreference pref) {
+  return switch (pref) {
+    WordBattleThemePreference.system =>
+      WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark
+          ? BoardStylePresets.graphiteInk
+          : BoardStylePresets.modernInk,
+    WordBattleThemePreference.paper => BoardStylePresets.modernInk,
+    WordBattleThemePreference.graphite => BoardStylePresets.graphiteInk,
+    WordBattleThemePreference.fluffy => BoardStylePresets.fluffy,
+  };
 }
 
 class _StyleSwatch extends StatelessWidget {

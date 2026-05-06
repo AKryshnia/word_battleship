@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
+import '../theme/theme_variant.dart';
 import '../widgets/event_strip.dart';
 import '../widgets/game_board.dart';
 import '../widgets/game_hud_bar.dart';
@@ -20,24 +21,23 @@ class GameShell extends StatelessWidget {
   final SoloGameState gameState;
   final VoidCallback onReset;
   final void Function(int row, int col) onCellClick;
-  final BoardVisualStyle boardStyle;
-  final ValueChanged<BoardVisualStyle> onStyleChange;
+  final BoardStyleConfig boardStyleConfig;
+  final WordBattleThemePreference currentThemePreference;
+  final ValueChanged<WordBattleThemePreference> onThemePreferenceChanged;
 
   const GameShell({
     super.key,
     required this.gameState,
     required this.onReset,
     required this.onCellClick,
-    required this.boardStyle,
-    required this.onStyleChange,
+    required this.boardStyleConfig,
+    required this.currentThemePreference,
+    required this.onThemePreferenceChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final styleConfig = isDark
-        ? BoardStylePresets.graphiteInk
-        : BoardStylePresets.of(boardStyle);
     final tokens = context.wbTokens;
 
     return Container(
@@ -72,20 +72,22 @@ class GameShell extends StatelessWidget {
               GameHudBar(
                 gameState: gameState,
                 onReset: onReset,
-                currentStyle: boardStyle,
-                onStyleChange: onStyleChange,
+                currentThemePreference: currentThemePreference,
+                onThemePreferenceChanged: onThemePreferenceChanged,
               ),
 
               // Fixed-height event zone — no layout jumps
               EventStrip(gameState: gameState),
 
               if (isMobile)
-                Expanded(child: _buildMobileGameBlock(styleConfig: styleConfig))
+                Expanded(
+                  child: _buildMobileGameBlock(styleConfig: boardStyleConfig),
+                )
               else ...[
                 // Board — takes all remaining height.
                 // The board area is given the style's mat color so dark themes
                 // render a fully themed surface inside the white shell card.
-                Expanded(child: _buildBoardArea(styleConfig: styleConfig)),
+                Expanded(child: _buildBoardArea(styleConfig: boardStyleConfig)),
 
                 // Collapsed-fixed bottom zone — board never jumps during play
                 MoveLogBar(moves: gameState.lastMoves),

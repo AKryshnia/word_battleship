@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../providers/game_provider.dart';
 import '../theme/app_theme.dart';
-import '../theme/board_style.dart';
+import '../theme/theme_variant.dart';
+import '../theme/theme_variant_provider.dart';
 import '../widgets/game_shell.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -15,12 +16,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  // Visual board style — held in screen state so swapping it does not touch
-  // game logic or trigger any provider rebuild. Defaults to Modern (Ink on
-  // Paper); persistence is intentionally not added here since the project's
-  // existing storage layer is scoped to game state, not preferences.
-  BoardVisualStyle _boardStyle = BoardStylePresets.defaultStyle;
-
   @override
   void initState() {
     super.initState();
@@ -37,8 +32,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   EdgeInsets _outerPadding(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (width < 420) return const EdgeInsets.symmetric(horizontal: 6, vertical: 6);
-    if (width < 700) return const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    if (width < 420) {
+      return const EdgeInsets.symmetric(horizontal: 6, vertical: 6);
+    }
+    if (width < 700) {
+      return const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    }
     return const EdgeInsets.symmetric(horizontal: 20, vertical: 16);
   }
 
@@ -49,18 +48,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return LayoutProfile.wide;
   }
 
-  void _onStyleChange(BoardVisualStyle style) {
-    if (style == _boardStyle) return;
-    setState(() => _boardStyle = style);
-  }
-
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
     final notifier = ref.read(gameProvider.notifier);
+    final preference = ref.watch(themeVariantProvider);
+    final platformBrightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final boardStyleConfig = preference
+        .resolveVariant(platformBrightness)
+        .boardStyle;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.wbTokens.background,
       body: SafeArea(
         child: Padding(
           padding: _outerPadding(context),
@@ -80,8 +80,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           notifier.resetGame(_layoutProfile(context)),
                       onCellClick: (row, col) =>
                           notifier.handleCellClick(row, col),
-                      boardStyle: _boardStyle,
-                      onStyleChange: _onStyleChange,
+                      boardStyleConfig: boardStyleConfig,
+                      currentThemePreference: preference,
+                      onThemePreferenceChanged: ref
+                          .read(themeVariantProvider.notifier)
+                          .set,
                     ),
                   ),
                 ),
