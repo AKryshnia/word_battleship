@@ -1,7 +1,7 @@
 # Word Battleship
 
 A solo Battleship game with a word-association twist, built with Flutter.  
-Each cell on the board holds a Russian adjective–noun phrase. When a cell is tapped, the full phrase is revealed in a banner above the board—making every shot a vocabulary moment.
+Each cell on the board holds a Russian adjective–noun phrase. When a cell is tapped, the full phrase is revealed in the event strip above the board—making every shot a vocabulary moment.
 
 ---
 
@@ -19,6 +19,8 @@ Each cell on the board holds a Russian adjective–noun phrase. When a cell is t
   - [Models](#models)
   - [Services](#services)
   - [Providers](#providers)
+  - [Theme System](#theme-system)
+  - [Utilities](#utilities)
   - [Widgets](#widgets)
   - [Screens](#screens)
 - [Key Algorithms](#key-algorithms)
@@ -36,11 +38,11 @@ Each cell on the board holds a Russian adjective–noun phrase. When a cell is t
 1. A 10×10 grid is generated with 10 ships placed randomly.
 2. Ships never touch each other (including diagonals).
 3. Tap any unrevealed cell to fire a shot.
-4. A **hit** (red, crosshair icon) means a ship occupies that cell.
-5. A **miss** (grey, ✕ icon) means open water.
-6. The selected cell's word phrase is displayed above the board.
+4. A **hit** means a ship occupies that cell; a **miss** means open water.
+5. The shot result and the cell's word phrase appear in the event strip above the board.
+6. The move log at the bottom records every shot as a chip (hit / miss).
 7. The game ends when all ships are sunk.
-8. Press **Reset** at any time to generate a fresh board.
+8. Press **Новая игра** at any time to generate a fresh board.
 
 ### Ship Fleet
 
@@ -62,7 +64,7 @@ Each cell on the board holds a Russian adjective–noun phrase. When a cell is t
 | Language           | Dart                            | — |
 | State management   | flutter_riverpod                | ^3.2.1 |
 | Persistence        | shared_preferences              | ^2.5.4 |
-| Fonts              | google_fonts (Poppins)          | ^8.0.2 |
+| Fonts              | google_fonts (Manrope, Poppins, Space Mono, Nunito, Rajdhani) | ^8.0.2 |
 | Responsive sizing  | flutter_screenutil              | ^5.9.3 |
 | UUID generation    | uuid                            | ^4.5.2 |
 | Design system      | Material 3 (`useMaterial3: true`) | — |
@@ -79,13 +81,15 @@ lib/
 │   ├── constants.dart         # Barrel export
 │   ├── game_constants.dart    # Ship sizes, storage key
 │   ├── word_dictionary.dart   # Generated local noun/adjective dictionary
-│   └── words.dart             # Board sizing
+│   └── words.dart             # Board sizing helpers
 ├── models/
 │   ├── models.dart            # Barrel export
+│   ├── board_position.dart    # BoardPosition value object (row, col)
 │   ├── cell.dart              # Cell value object
 │   ├── cell_status.dart       # CellStatus enum
-│   ├── ship.dart              # Ship + ShipCell value objects
 │   ├── game_state.dart        # SoloGameState value object
+│   ├── move_log_entry.dart    # MoveLogEntry value object
+│   ├── ship.dart              # Ship + ShipCell value objects
 │   └── word_entry.dart        # Dictionary entry models + generation mode
 ├── providers/
 │   └── game_provider.dart     # GameProvider + derived providers
@@ -93,11 +97,34 @@ lib/
 │   ├── board_service.dart     # Board creation & ship placement
 │   ├── storage_service.dart   # JSON serialization / SharedPreferences
 │   └── word_pair_service.dart # Local word-pair generation
+├── theme/
+│   ├── app_theme.dart         # AppTheme (light/dark/fluffy) + barrel exports
+│   ├── app_theme_dark.dart    # buildDarkTheme()
+│   ├── app_theme_fluffy.dart  # buildFluffyTheme()
+│   ├── app_theme_light.dart   # buildLightTheme()
+│   ├── board_style.dart       # BoardVisualStyle, CellVisual, BoardStyleConfig
+│   ├── board_style_presets.dart # BoardStylePresets (modernInk, graphiteInk, fluffy, navalRetro, gridScan)
+│   ├── cell_painters.dart     # Custom painters for cell icons
+│   ├── theme_foundation.dart  # AppColors, AppDimensions, AppTextStyles
+│   ├── theme_tokens.dart      # WordBattleThemeTokens (ThemeExtension) + wbTokens extension
+│   └── theme_variant.dart     # WordBattleThemeVariant enum (paper, graphite, fluffy)
+├── utils/
+│   ├── plural_ru.dart         # pluralRu() — Russian plural forms
+│   └── split_ru_label_parts.dart # splitRuLabelParts(), splitRuLabel()
 ├── screens/
 │   └── game_screen.dart       # Root screen widget
 └── widgets/
-    ├── game_board.dart        # Grid + cell rendering
-    └── game_header.dart       # Stats dashboard + reset button
+    ├── board_axis_headers.dart # Column (nouns) and row (adjectives) axis headers
+    ├── board_cell_widget.dart  # Single cell widget
+    ├── event_strip.dart        # Fixed 56 px event zone (hit/miss/sunk/victory)
+    ├── game_board.dart         # Grid + axis headers assembly
+    ├── game_hud_bar.dart       # Compact 54 px top bar (brand · status · stats · picker · button)
+    ├── game_shell.dart         # Main card container (shell)
+    ├── hud_stats.dart          # HudStatsRow + HudStatItem
+    ├── hud_style_picker.dart   # Board style popup menu
+    ├── move_log_bar.dart       # Scrollable bottom bar with move chips
+    ├── new_game_button.dart    # "Новая игра" button
+    └── word_battle_logo.dart   # WordBattle brand logo
 ```
 
 ---
@@ -114,20 +141,23 @@ GameScreen (ConsumerStatefulWidget)
    │  calls
    ▼
 GameProvider.handleCellClick(row, col)
-   │  mutates
+   │  mutates (new SoloGameState via copyWith)
    ▼
-SoloGameState (immutable, replaced via copyWith)
+SoloGameState (immutable)
    │  triggers rebuild of
    ▼
-GameScreen → GameHeader + GameBoard
+GameScreen → GameShell → GameHudBar + EventStrip + GameBoard + MoveLogBar
 ```
+
+`GameScreen` also holds `BoardVisualStyle` in local state. Switching themes does not touch the provider and triggers no game state rebuild.
 
 ### Data Flow
 
-1. `BoardService.createNewGameBoard()` generates the initial board and ship list.
+1. `BoardService.createNewGameBoard()` generates the initial board, ship list, column nouns, and row adjectives.
 2. `GameProvider` holds `SoloGameState` via Riverpod `NotifierProvider`.
-3. `GameScreen` watches `gameProvider` and passes slices down to `GameHeader` and `GameBoard`.
-4. Cell taps bubble up through `onCellClick` callbacks into `GameProvider`.
+3. `GameScreen` watches `gameProvider` and passes the full state to `GameShell`.
+4. `GameShell` distributes slices to `GameHudBar`, `EventStrip`, `GameBoard`, and `MoveLogBar`.
+5. Cell taps bubble up through `onCellClick` callbacks into `GameProvider`.
 
 ### State Management
 
@@ -141,7 +171,7 @@ Three derived read-only providers expose computed values:
 | `shipsLeftProvider` | Unsunk ship count |
 | `sunkShipsCountProvider` | Sunk ship count |
 
-> **Note:** `GameHeader` currently computes these values directly from `gameState` rather than consuming the derived providers.
+> **Note:** `GameHudBar` computes stats directly from `gameState.ships` rather than consuming the derived providers.
 
 ---
 
@@ -150,7 +180,7 @@ Three derived read-only providers expose computed values:
 ### Entry Point
 
 **`lib/main.dart`**  
-Wraps the app in `ProviderScope` (required by Riverpod), configures `MaterialApp` with Material 3, a blue seed color, and Poppins as the global text theme. `GameScreen` is the sole route.
+Wraps the app in `ProviderScope` (required by Riverpod). Configures `MaterialApp` with Material 3, `AppTheme.light()` / `AppTheme.dark()`, and `ThemeMode` resolved from the `WB_THEME_MODE` compile-time define (`light` / `dark` / `system`).
 
 ---
 
@@ -167,30 +197,28 @@ Wraps the app in `ProviderScope` (required by Riverpod), configures `MaterialApp
 
 | Symbol | Description |
 |---|---|
-| `boardSize` | `10` — desktop grid dimension |
-| `mobileBoardSize` | `6` — mobile grid dimension (see TODOs) |
-| `computeBoardSize()` | Currently always returns `boardSize` (TODO: responsive) |
+| `boardSize` | `10` — default grid dimension |
+| `mobileBoardSize` | `6` — small grid dimension |
+| `computeBoardSize(profile)` | Returns board size for the given `LayoutProfile` |
 
 **`lib/constants/word_dictionary.dart`**
 
-Generated local dictionary derived from OpenRussian Russian Dictionary Data.
-It currently contains filtered `NounEntry` and `AdjectiveEntry` lists for
-runtime word-pair generation. The full source CSV files are not bundled.
+Generated local dictionary derived from OpenRussian Russian Dictionary Data. Contains filtered `NounEntry` and `AdjectiveEntry` lists for runtime word-pair generation. The full source CSV files are not bundled.
 
 ---
 
 ### Models
 
-All models are **immutable value objects** with `copyWith`, `==`, `hashCode`, and `toString`.
+All models are **immutable value objects** with `==`, `hashCode`, and `toString`.
 
 **`CellStatus` enum** (`cell_status.dart`)
 
 | Value | Meaning | Visual |
 |---|---|---|
-| `defaultValue` | Untouched | Blue tile, noun label |
-| `hit` | Ship occupies cell, shot fired | Red tile, crosshair icon |
-| `miss` | Empty cell, shot fired | Grey tile, ✕ icon |
-| `blocked` | Reserved (adjacent blocking, unused) | Dark grey, block icon |
+| `defaultValue` | Untouched | Themed default tile |
+| `hit` | Ship occupies cell, shot fired | Themed hit tile + hit icon |
+| `miss` | Empty cell, shot fired | Themed miss tile + miss icon |
+| `blocked` | Adjacent blocking (reserved) | Themed blocked tile with hatch overlay |
 
 **`Cell`** (`cell.dart`)
 
@@ -213,6 +241,24 @@ All models are **immutable value objects** with `copyWith`, `==`, `hashCode`, an
 
 **`ShipCell`** — `(row, col)` coordinate pair.
 
+**`BoardPosition`** (`board_position.dart`)
+
+| Field | Type | Description |
+|---|---|---|
+| `row` | `int` | 0-indexed row |
+| `col` | `int` | 0-indexed column |
+
+Used to identify cells of interest (e.g. hover highlights, adjacency markers).
+
+**`MoveLogEntry`** (`move_log_entry.dart`)
+
+| Field | Type | Description |
+|---|---|---|
+| `phrase` | `String` | The word phrase shown on the chip |
+| `isHit` | `bool` | Whether this move was a hit |
+
+Stored in `SoloGameState.lastMoves` (up to `moveLogLimit = 10`).
+
 **`SoloGameState`** (`game_state.dart`)
 
 | Field | Type | Description |
@@ -222,6 +268,25 @@ All models are **immutable value objects** with `copyWith`, `==`, `hashCode`, an
 | `movesCount` | `int` | Total shots fired |
 | `hitsCount` | `int` | Shots that were hits |
 | `isFinished` | `bool` | All ships sunk |
+| `lastMoveMessage` | `String?` | Raw message for the last shot |
+| `lastSunkMessage` | `String?` | Message shown when a ship is sunk |
+| `victorySummary` | `String?` | Set when the game is won |
+| `columnNouns` | `List<NounEntry>` | Nouns for column axis labels |
+| `rowAdjectives` | `List<AdjectiveEntry>` | Adjectives for row axis labels |
+| `lastMoves` | `List<MoveLogEntry>` | Recent move history (capped at 10) |
+| `interestCells` | `Set<BoardPosition>` | Cells to highlight (e.g. hovered column/row) |
+| `currentMode` | `WordPairMode` | Word-pair generation mode |
+| `layoutProfile` | `LayoutProfile` | Board size profile (compact / medium / wide) |
+
+`clearLastSunkMessage` and `clearVictorySummary` are convenience flags on `copyWith` to nullify those fields explicitly.
+
+**`LayoutProfile` enum** (`game_state.dart`)
+
+| Value | Board size | When used |
+|---|---|---|
+| `compact` | 6×6 | viewport width < 420 px |
+| `medium` | 6×6 | 420–699 px |
+| `wide` | 10×10 | ≥ 700 px |
 
 **`WordGender` enum** (`word_entry.dart`)
 
@@ -235,13 +300,12 @@ All models are **immutable value objects** with `copyWith`, `==`, `hashCode`, an
 
 | Value | Meaning |
 |---|---|
-| `classic` | Prefers semantically closer adjective-noun pairs when tags allow it |
-| `random` | Keeps grammar agreement but intentionally allows stranger tag combinations |
+| `classic` | Prefers semantically closer adjective-noun pairs |
+| `random` | Same grammar agreement but intentionally stranger tag combinations |
 
 **`NounEntry` / `AdjectiveEntry`** (`word_entry.dart`)
 
-Local dictionary entries. `AdjectiveEntry` stores masculine, feminine, and
-neuter nominative forms so generated phrases can agree with noun gender.
+Local dictionary entries. `AdjectiveEntry` stores masculine, feminine, and neuter nominative forms so generated phrases agree with noun gender.
 
 ---
 
@@ -253,12 +317,12 @@ Pure static utility — no state, no side effects.
 | Method | Description |
 |---|---|
 | `createEmptyBoard([size])` | Builds an N×N grid of blank `Cell`s with words assigned |
-| `createNewGameBoard([size])` | Calls `createEmptyBoard`, then places all ships, returns `GameBoardResult` |
+| `createNewGameBoard([size])` | Calls `createEmptyBoard`, places all ships, returns `GameBoardResult` |
 | `_placeShip(board, size)` | Randomly places one ship (see [Ship Placement](#ship-placement)) |
 | `_canPlaceShip(...)` | Validates bounds + adjacency before placement |
 | `_hasShipsAround(board, row, col)` | Checks all 8 neighbours for existing ships |
 
-`GameBoardResult` — simple data class bundling `board` + `ships` after generation.
+`GameBoardResult` bundles `board`, `ships`, `columnNouns`, and `rowAdjectives` after generation.
 
 ---
 
@@ -270,13 +334,9 @@ Generates unique Russian adjective-noun phrases from the local dictionary.
 |---|---|
 | `generatePairs(count, mode, seed)` | Returns up to `count` unique phrases. A `seed` makes generation reproducible. |
 
-`classic` mode selects a noun and an adjective, agrees the adjective with noun
-gender, and prefers shared semantic tags when available.
+`classic` mode selects a noun and an adjective, agrees the adjective with noun gender, and prefers shared semantic tags when available.
 
-`random` mode also preserves grammatical agreement but prefers adjectives with
-different tags to create stranger combinations for the future "Режим Рандом".
-The UI does not expose this mode yet; board generation is currently fixed to
-`WordPairMode.classic`.
+`random` mode preserves grammatical agreement but prefers adjectives with different tags to create stranger combinations ("Режим Рандом"). The UI does not expose this mode yet; board generation is fixed to `WordPairMode.classic`.
 
 ---
 
@@ -310,49 +370,194 @@ Static async service. Serializes `SoloGameState` to/from JSON and persists it vi
 | Method | Description |
 |---|---|
 | `handleCellClick(row, col)` | Fires a shot; no-op if game finished or cell already revealed |
-| `resetGame()` | Generates a brand-new board |
+| `resetGame([profile])` | Generates a brand-new board for the given `LayoutProfile` |
+
+---
+
+### Theme System
+
+The theme system is split into several complementary layers.
+
+#### `theme_foundation.dart` — static constants
+
+**`AppColors`** — warm paper-white palette with a teal (`#3FB6B0`) accent. Used by non-tokenised UI (button backgrounds, cell states in presets, etc.).
+
+**`AppDimensions`** — all layout constants in one place.
+
+| Group | Constants |
+|---|---|
+| Cell sizes | `cellSize` (46), `cellSizeMd` (30), `cellGap` (2) |
+| Axis sizes | `adjAxisWidth` (112), `nounAxisH` (118), `adjAxisWidthMd` (76), `nounAxisHMd` (76) |
+| Axis font sizes | `axisFs` (11), `axisFsMd` (9) |
+| Shell sections | `hudHeight` (54), `eventStripH` (56), `moveLogBarH` (103) |
+| Border radii | `radiusShell` (18), `radiusCell` (6), `radiusButton` (8), `radiusChip` (5) |
+| Shell padding | `shellPadH` (22), `shellPadV` (22) |
+
+**`AppTextStyles`** — all text styles using Manrope (via `google_fonts`). Named by role: `hudBrand`, `hudStatus`, `hudStatNum`, `hudStatLabel`, `axisLabel`, `axisLabelActive`, `eventTag`, `eventMessage`, `chipLabel`, `moveLogLabel`, `newGameButton`.
+
+#### `theme_tokens.dart` — dynamic tokens
+
+**`WordBattleThemeTokens`** extends `ThemeExtension<WordBattleThemeTokens>`. It carries ~40 semantic color tokens that change between themes (surfaces, text, accent states, event strip colors, move log chip colors, etc.).
+
+Access in widgets via the `BuildContext.wbTokens` extension:
+```dart
+final tokens = context.wbTokens;
+Container(color: tokens.surface)
+```
+
+Three static token presets: `light`, `dark`, `fluffy`.
+
+#### `theme_variant.dart` — variant enum
+
+**`WordBattleThemeVariant`** — `paper`, `graphite`, `fluffy`. Each variant exposes:
+- `label` / `shortLabel` — display strings
+- `boardStyle` — the linked `BoardStyleConfig`
+- `isDark` — whether `Brightness.dark` applies
+
+#### `app_theme.dart` + split builders
+
+**`AppTheme`** provides three static `ThemeData` factories: `light()`, `dark()`, `fluffy()`. Each injects the corresponding `WordBattleThemeTokens` as a `ThemeExtension`. The three builder functions live in `app_theme_light.dart`, `app_theme_dark.dart`, and `app_theme_fluffy.dart` respectively.
+
+#### `board_style.dart` — board visual style
+
+**`BoardVisualStyle`** enum — four visual presets for the board:
+
+| Value | Label |
+|---|---|
+| `modernInk` | Modern — Ink on Paper |
+| `navalRetro` | Retro — Naval Chart |
+| `candyFluffy` | Fluffy — Candy Tiles |
+| `gridScan` | Futuristic — Grid Scan |
+
+**`CellVisual`** — colors, border, shadows, and optional `hatchColor` (diagonal stripe overlay) for a single cell state.
+
+**`CellIconKind`** — discriminator for the custom painter used inside a revealed cell: `inkX`, `ring`, `burst8`, `wave`, `sparkle`, `teardrop`, `radarBlip`, `miniDiamond`.
+
+**`BoardStyleConfig`** — everything the board UI needs per style: board background, optional scanline overlay, seven `CellVisual` states (`default`, `path`, `hover`, `interest`, `hit`, `sunk`, `miss`, `blocked`), icon kind + color, axis label `TextStyle`, font scale, and uppercase flag.
+
+#### `board_style_presets.dart` — preset configs
+
+**`BoardStylePresets`** provides five ready-made `BoardStyleConfig` instances:
+
+| Preset | Description |
+|---|---|
+| `modernInk` | Ink-on-Paper light look (default) |
+| `graphiteInk` | Dark board for the Graphite app theme |
+| `fluffy` | Candy-pink board |
+| `_retro` | Naval chart (dark navy + orange hits) |
+| `_future` | Futuristic grid scan (black + neon green) |
+
+`BoardStylePresets.of(style)` dispatches to the correct config by `BoardVisualStyle`.
+
+`GameScreen` holds `_boardStyle` in local state. When the app theme is dark (`Brightness.dark`), `GameShell` always resolves `graphiteInk` regardless of `_boardStyle`.
+
+#### `cell_painters.dart` — custom icon painters
+
+Each `CellIconKind` maps to a `CustomPainter` that renders the icon inside a revealed cell. Painters keep cell widgets free of style-aware conditional branches.
+
+---
+
+### Utilities
+
+**`lib/utils/plural_ru.dart`**
+
+`pluralRu(n, one, few, many)` — returns the correct Russian plural form based on the standard mod-10 / mod-100 rules. Used in `HudStatsRow` and `EventStrip`.
+
+**`lib/utils/split_ru_label_parts.dart`**
+
+`splitRuLabelParts(word)` — splits a Russian word into two display lines at the best syllable boundary. Returns a single-element list for short words. Used by axis header widgets.
+
+`splitRuLabel(word)` — convenience wrapper that joins the result with `\n`.
 
 ---
 
 ### Widgets
 
-**`GameBoard`** (`game_board.dart`)  
-Stateless. Renders the grid as a square `AspectRatio(1.0)` → `GridView.builder`.  
-Passes tap events up via `onCellClick(row, col, word)` callback.
+**`GameShell`** (`game_shell.dart`)  
+Main card container — mirrors the HTML `.shell` element. Holds `GameHudBar`, `EventStrip`, the board area, and `MoveLogBar` in a vertical `Column`. Resolves `BoardStyleConfig` from the active style and whether the app theme is dark.
 
-**`_CellWidget`** (private, same file)  
-Renders a single cell. Color, border, icon, and label are derived from `CellStatus`:
+Desktop layout:
+```
+GameHudBar (54 px)
+EventStrip (56 px)
+Expanded → board area (themed mat + GameBoard)
+MoveLogBar (103 px collapsed)
+```
 
-| Status | Background | Content |
-|---|---|---|
-| `defaultValue` | `blue[50]` | Noun word (desktop only) |
-| `hit` | `red[400]` | Crosshair icon |
-| `miss` | `grey[300]` | ✕ icon |
-| `blocked` | `grey[400]` | Block icon |
-
-Taps are disabled on already-revealed cells.
+Mobile layout (< 480 px): board area and `MoveLogBar` are stacked in a custom height-budget layout to prevent `RenderFlex` overflow.
 
 ---
 
-**`GameHeader`** (`game_header.dart`)  
-Stateless. Shows:
-- Game status label ("Game in Progress" / "Game Finished!")
-- Reset button
-- 5 stat cards: **Total Ships**, **Ships Left**, **Sunk**, **Moves**, **Hits**
+**`GameHudBar`** (`game_hud_bar.dart`)  
+Compact top bar inside the shell.
+
+Desktop (≥ 480 px): single 54 px row — brand · pipe · status | stats · style picker · new-game button.  
+Mobile (< 480 px): two-row layout — row 1 (42 px): brand · status · picker · button; row 2 (26 px): stats strip on `surface2`.
+
+---
+
+**`HudStatsRow`** / **`HudStatItem`** (`hud_stats.dart`)  
+Stateless. Renders three stat items (moves / hits / ships left) with Russian plural forms.
+
+---
+
+**`NewGameButton`** (`new_game_button.dart`)  
+Stateless. Theme-aware "Новая игра" `TextButton`. Light: teal-tinted fill; dark: translucent teal overlay with press/hover states.
+
+---
+
+**`HudStylePicker`** (`hud_style_picker.dart`)  
+Palette icon button that opens a `PopupMenuButton` listing all four `BoardVisualStyle` options. Current selection shown with a checkmark. Tapping applies the style immediately.
+
+---
+
+**`WordBattleLogo`** (`word_battle_logo.dart`)  
+Stateless. Brand mark + "WordBattle" text, sizing controlled by `markSize`.
+
+---
+
+**`EventStrip`** (`event_strip.dart`)  
+Fixed 56 px zone below the HUD bar. Always occupies layout space (board never jumps). Shows the result of the last action:
+
+| Event | Tag | Message |
+|---|---|---|
+| Miss | ПРОМАХ | word phrase · flavor text |
+| Hit | ПОПАДАНИЕ | word phrase |
+| Sunk | ПОТОПЛЕН | ship's word phrases |
+| Won | ПОБЕДА | total moves count |
+
+Priority: victory > sunk > hit > miss. Empty before the first move.
+
+---
+
+**`GameBoard`** (`game_board.dart`)  
+Stateless. Assembles `board_axis_headers.dart` and the cell grid. Receives `columnNouns`, `rowAdjectives`, and `interestCells` for axis label highlighting.
+
+---
+
+**`board_axis_headers.dart`**  
+Renders the column header row (vertical noun labels) and the row header column (horizontal adjective labels). Active axis labels (matching the hovered row/column) are highlighted using `axisLabelActive` from `BoardStyleConfig`.
+
+---
+
+**`board_cell_widget.dart`** (private `_CellWidget`)  
+Renders a single cell. Color, border, shadow, icon, and hatch overlay are all derived from `BoardStyleConfig` + `CellStatus`. Taps are disabled on already-revealed cells.
+
+---
+
+**`MoveLogBar`** (`move_log_bar.dart`)  
+Fixed-height bottom zone (103 px collapsed). Shows a "ХОДЫ" header and move chips in a `Wrap`. When chips overflow, a chevron appears in the header for scrolling (one chip-row per tap, or mouse-wheel on desktop). Mobile variant caps at `maxHeight` and shrinks to content.
+
+Chip styles: hits use a teal-tinted chip with a `●` marker; misses use a neutral chip with a `×` marker.
 
 ---
 
 ### Screens
 
 **`GameScreen`** (`game_screen.dart`)  
-`ConsumerStatefulWidget`. Holds `selectedWord` local state to display the last tapped cell's phrase.
+`ConsumerStatefulWidget`. Holds `_boardStyle` (`BoardVisualStyle`) in local state — theme changes stay out of the provider. On first frame, reads viewport width and calls `resetGame(profile)` if the resolved `LayoutProfile` differs from the stored one.
 
-Layout (top → bottom):
-1. `AppBar` — title
-2. `GameHeader` — stats + reset
-3. Selected word banner (conditional)
-4. `GameBoard` (expanded)
-5. Footer label
+Outer layout: `Scaffold` with a warm background → `SafeArea` → responsive `EdgeInsets` padding → `ConstrainedBox(maxWidth: 980)` → `GameShell`.
 
 ---
 
@@ -361,11 +566,11 @@ Layout (top → bottom):
 ### Board Generation
 
 ```
-createNewGameBoard()
-  └─ createEmptyBoard()           — fills N×N with blank Cells + Russian words
+createNewGameBoard(size)
+  └─ createEmptyBoard(size)         — fills N×N with blank Cells + Russian words
   └─ for each size in shipSizes:
-       _placeShip(board, size)    — randomly places ship, mutates board in-place
-  └─ returns GameBoardResult(board, ships)
+       _placeShip(board, size)      — randomly places ship, mutates board in-place
+  └─ returns GameBoardResult(board, ships, columnNouns, rowAdjectives)
 ```
 
 ### Ship Placement
@@ -412,11 +617,11 @@ Storage key: `word-battleship-solo-v1` (versioned to allow breaking changes).
 
 | # | Location | Description |
 |---|---|---|
-| 1 | `words.dart` · `computeBoardSize()` | Responsive board sizing not implemented — always returns 10. Mobile 6×6 path is dead code. |
-| 2 | `game_provider.dart` | `StorageService` not integrated — game progress is lost on app restart. |
-| 3 | `game_board.dart` | `flutter_screenutil` is imported but `ScreenUtilInit` is never called in `main.dart`, so `.w` / `.h` extensions would return uncalibrated values if used. |
-| 4 | `game_header.dart` | Derived providers (`totalShipsProvider`, `shipsLeftProvider`, `sunkShipsCountProvider`) are defined but `GameHeader` recomputes the same values from raw `gameState`. |
-| 5 | `cell_status.dart` | `CellStatus.blocked` has rendering logic in `_CellWidget` but is never set by `GameProvider` (intended for adjacency blocking feature). |
+| 1 | `game_provider.dart` | `StorageService` not integrated — game progress is lost on app restart. |
+| 2 | `game_board.dart` | `flutter_screenutil` is imported but `ScreenUtilInit` is never called in `main.dart`, so `.w` / `.h` extensions would return uncalibrated values if used. |
+| 3 | `game_provider.dart` | Derived providers (`totalShipsProvider`, `shipsLeftProvider`, `sunkShipsCountProvider`) are defined but `GameHudBar` recomputes the same values from raw `gameState.ships`. |
+| 4 | `cell_status.dart` | `CellStatus.blocked` has rendering logic in `board_cell_widget.dart` but is never set by `GameProvider` (intended for adjacency blocking feature). |
+| 5 | `word_pair_service.dart` | `WordPairMode.random` ("Режим Рандом") is implemented but not exposed in the UI — `GameProvider` always resets with `WordPairMode.classic`. |
 
 ---
 

@@ -2,23 +2,27 @@
 
 Word Battleship — прототип игры "Морской бой" на Flutter, где вместо цифр и букв используются русские словосочетания. В дальнейшем будут добавляться другие языки, если проект будет развиваться.
 
-Каждая клетка содержит фразу из прилагательного и существительного. Когда игрок
-нажимает на клетку, игра определяет попадание или промах и показывает полную
-фразу над полем.
+Каждая клетка содержит фразу из прилагательного и существительного. Когда игрок нажимает на клетку, игра определяет попадание или промах и показывает результат и фразу в полосе событий над полем.
 
 ---
 
 Word Battleship is a Flutter prototype that combines solo Battleship gameplay with Russian word-association practice.
 
-Each cell contains a Russian adjective-noun phrase. When the player taps a cell, the game resolves the shot as a hit or miss and reveals the full phrase above the board.
+Each cell contains a Russian adjective-noun phrase. When the player taps a cell, the game resolves the shot as a hit or miss and reveals the phrase in the event strip above the board.
 
 ## Features
 
-- 10x10 Battleship board.
+- 10×10 Battleship board (6×6 on mobile).
 - Classic fleet layout: 1 four-cell ship, 2 three-cell ships, 3 two-cell ships, and 4 one-cell ships.
 - Ships are placed randomly and never touch, including diagonally.
-- Riverpod-based game state.
-- Material 3 Flutter UI.
+- Russian adjective and noun labels on board axes — active row/column highlights on hover.
+- Event strip showing hit, miss, sunk, and victory messages with the word phrase.
+- Scrollable move log with hit/miss chips at the bottom of the board.
+- Four board visual styles: Modern (Ink on Paper), Retro (Naval Chart), Fluffy (Candy Tiles), Futuristic (Grid Scan).
+- Three app themes: Paper (light), Graphite (dark), Fluffy (pink). Switchable at runtime.
+- Responsive layout: adapts to mobile (< 480 px), tablet, and desktop widths.
+- Riverpod-based game state with immutable value objects.
+- Material 3 Flutter UI with a custom `ThemeExtension` design token system.
 - SharedPreferences serialization service prepared for save/load integration.
 
 ## Tech Stack
@@ -46,7 +50,7 @@ fvm flutter test
 
 ## Documentation
 
-Detailed architecture notes, project structure, data flow, model references, and implementation details are available in [technical_document.md](technical_document.md).
+Detailed architecture notes, project structure, data flow, model references, theme system, and implementation details are available in [technical_document.md](technical_document.md).
 
 ## Credits / Dictionary Data
 
