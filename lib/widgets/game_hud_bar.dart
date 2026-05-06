@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../theme/board_style.dart';
-import '../utils/plural_ru.dart';
+import 'hud_stats.dart';
 import 'hud_style_picker.dart';
 import 'new_game_button.dart';
 import 'word_battle_logo.dart';
@@ -109,7 +109,7 @@ class GameHudBar extends StatelessWidget {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: _HudStatsRow(
+                child: HudStatsRow(
                   moves: moves,
                   hits: hits,
                   shipsLeft: shipsLeft,
@@ -198,7 +198,7 @@ class GameHudBar extends StatelessWidget {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: _HudStatsRow(
+            child: HudStatsRow(
               moves: moves,
               hits: hits,
               shipsLeft: shipsLeft,
@@ -272,95 +272,6 @@ class _StatusRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Stats row — rendered at natural size; FittedBox above handles scaling.
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _HudStatsRow extends StatelessWidget {
-  final int moves, hits, shipsLeft, totalShips;
-
-  const _HudStatsRow({
-    required this.moves,
-    required this.hits,
-    required this.shipsLeft,
-    required this.totalShips,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _HudStatItem(
-          value: '$moves',
-          label: pluralRu(moves, 'ход', 'хода', 'ходов'),
-          hasDivider: true,
-        ),
-        _HudStatItem(
-          value: '$hits',
-          label: pluralRu(hits, 'попадание', 'попадания', 'попаданий'),
-          hasDivider: true,
-        ),
-        _HudStatItem(
-          value: '$shipsLeft/$totalShips',
-          label: pluralRu(shipsLeft, 'корабль', 'корабля', 'кораблей'),
-          hasDivider: false,
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Single stat: bold number + small label, optionally with right border.
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _HudStatItem extends StatelessWidget {
-  final String value;
-  final String label;
-  final bool hasDivider;
-
-  const _HudStatItem({
-    required this.value,
-    required this.label,
-    required this.hasDivider,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11),
-      decoration: hasDivider
-          ? BoxDecoration(
-              border: Border(
-                right: BorderSide(color: context.wbTokens.borderSubtle),
-              ),
-            )
-          : null,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Text(
-            value,
-            style: AppTextStyles.hudStatNum.copyWith(
-              color: context.wbTokens.text1,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppTextStyles.hudStatLabel.copyWith(
-              color: context.wbTokens.text3,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
