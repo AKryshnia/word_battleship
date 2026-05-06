@@ -142,8 +142,10 @@ class _MoveLogBarState extends State<MoveLogBar> {
           chevron = Icons.keyboard_arrow_up;
         }
 
-        final decoration = const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.borderSubtle)),
+        final tokens = context.wbTokens;
+        final decoration = BoxDecoration(
+          color: tokens.moveLogBackground,
+          border: Border(top: BorderSide(color: tokens.moveLogBorderTop)),
         );
         final padding = EdgeInsets.fromLTRB(hPad, 10, hPad, 10);
 
@@ -235,7 +237,12 @@ class _MoveLogHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text('ХОДЫ', style: AppTextStyles.moveLogLabel),
+        Text(
+          'ХОДЫ',
+          style: AppTextStyles.moveLogLabel.copyWith(
+            color: context.wbTokens.moveLogHeader,
+          ),
+        ),
         const Spacer(),
         if (chevron != null)
           MouseRegion(
@@ -245,7 +252,7 @@ class _MoveLogHeader extends StatelessWidget {
               onTap: onChevronTap,
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: Icon(chevron, size: 18, color: AppColors.text2),
+                child: Icon(chevron, size: 18, color: context.wbTokens.text2),
               ),
             ),
           ),
@@ -264,10 +271,17 @@ class _MoveChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.wbTokens;
     final isHit = move.isHit;
-    final bg = isHit ? const Color(0x14C05C3C) : AppColors.background;
-    final border = isHit ? const Color(0x28C05C3C) : AppColors.border;
-    final textColor = isHit ? AppColors.cellHitBorder : AppColors.text3;
+    final bg = isHit
+        ? tokens.moveLogHitChipBackground
+        : tokens.moveLogMissChipBackground;
+    final border = isHit
+        ? tokens.moveLogHitChipBorder
+        : tokens.moveLogMissChipBorder;
+    final textColor = isHit
+        ? tokens.moveLogHitChipText
+        : tokens.moveLogMissChipText;
     final markerStyle = AppTextStyles.chipLabel.copyWith(
       color: textColor,
       fontSize: isHit ? 9.0 : 15.0,

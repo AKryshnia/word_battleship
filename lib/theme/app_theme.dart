@@ -90,6 +90,26 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
   final Color red;
   final Color green;
   final Color onAccent;
+  final Color eventStripBackground;
+  final Color eventStripBorder;
+  final Color eventMissBar;
+  final Color eventMissLabel;
+  final Color eventHitBar;
+  final Color eventHitLabel;
+  final Color eventSunkBar;
+  final Color eventSunkLabel;
+  final Color eventWonBar;
+  final Color eventWonLabel;
+  final Color eventMessage;
+  final Color moveLogBackground;
+  final Color moveLogBorderTop;
+  final Color moveLogHeader;
+  final Color moveLogMissChipBackground;
+  final Color moveLogMissChipBorder;
+  final Color moveLogMissChipText;
+  final Color moveLogHitChipBackground;
+  final Color moveLogHitChipBorder;
+  final Color moveLogHitChipText;
 
   const WordBattleThemeTokens({
     required this.background,
@@ -112,6 +132,26 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     required this.red,
     required this.green,
     required this.onAccent,
+    required this.eventStripBackground,
+    required this.eventStripBorder,
+    required this.eventMissBar,
+    required this.eventMissLabel,
+    required this.eventHitBar,
+    required this.eventHitLabel,
+    required this.eventSunkBar,
+    required this.eventSunkLabel,
+    required this.eventWonBar,
+    required this.eventWonLabel,
+    required this.eventMessage,
+    required this.moveLogBackground,
+    required this.moveLogBorderTop,
+    required this.moveLogHeader,
+    required this.moveLogMissChipBackground,
+    required this.moveLogMissChipBorder,
+    required this.moveLogMissChipText,
+    required this.moveLogHitChipBackground,
+    required this.moveLogHitChipBorder,
+    required this.moveLogHitChipText,
   });
 
   static const light = WordBattleThemeTokens(
@@ -135,6 +175,26 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     red: AppColors.cellHitBg,
     green: AppColors.statusWon,
     onAccent: Colors.white,
+    eventStripBackground: AppColors.surface,
+    eventStripBorder: AppColors.borderSubtle,
+    eventMissBar: Color(0xFFC8C0AE),
+    eventMissLabel: Color(0xFF9A8E70),
+    eventHitBar: Color(0xFF3FB6B0),
+    eventHitLabel: Color(0xFF1A4F4C),
+    eventSunkBar: Color(0xFFB85020),
+    eventSunkLabel: Color(0xFF8A3818),
+    eventWonBar: Color(0xFF1A8A50),
+    eventWonLabel: Color(0xFF0E5A33),
+    eventMessage: Color(0xFF2A2A28),
+    moveLogBackground: AppColors.surface,
+    moveLogBorderTop: AppColors.borderSubtle,
+    moveLogHeader: AppColors.text3,
+    moveLogMissChipBackground: AppColors.background,
+    moveLogMissChipBorder: AppColors.border,
+    moveLogMissChipText: AppColors.text3,
+    moveLogHitChipBackground: Color(0x14C05C3C),
+    moveLogHitChipBorder: Color(0x28C05C3C),
+    moveLogHitChipText: AppColors.cellHitBorder,
   );
 
   static const dark = WordBattleThemeTokens(
@@ -158,6 +218,26 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     red: Color(0xFFDC5A32),
     green: Color(0xFF42C17A),
     onAccent: Color(0xFF0A2827),
+    eventStripBackground: Color(0xFF222220),
+    eventStripBorder: Color(0xFF2E2E2C),
+    eventMissBar: Color(0xFF5A564C),
+    eventMissLabel: Color(0xFF988F7E),
+    eventHitBar: Color(0xFF3FB6B0),
+    eventHitLabel: Color(0xFF7CD4CE),
+    eventSunkBar: Color(0xFFDC5A32),
+    eventSunkLabel: Color(0xFFEC885E),
+    eventWonBar: Color(0xFF42C17A),
+    eventWonLabel: Color(0xFF82D6A4),
+    eventMessage: Color(0xFFE8E2D0),
+    moveLogBackground: Color(0xFF222220),
+    moveLogBorderTop: Color(0xFF2E2E2C),
+    moveLogHeader: Color(0xFF6E6A60),
+    moveLogMissChipBackground: Color(0xFF26261F),
+    moveLogMissChipBorder: Color(0xFF3A3A37),
+    moveLogMissChipText: Color(0xFF988F7E),
+    moveLogHitChipBackground: Color(0x1C3FB6B0),
+    moveLogHitChipBorder: Color(0x423FB6B0),
+    moveLogHitChipText: Color(0xFF7CD4CE),
   );
 
   @override
@@ -182,6 +262,26 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
     Color? red,
     Color? green,
     Color? onAccent,
+    Color? eventStripBackground,
+    Color? eventStripBorder,
+    Color? eventMissBar,
+    Color? eventMissLabel,
+    Color? eventHitBar,
+    Color? eventHitLabel,
+    Color? eventSunkBar,
+    Color? eventSunkLabel,
+    Color? eventWonBar,
+    Color? eventWonLabel,
+    Color? eventMessage,
+    Color? moveLogBackground,
+    Color? moveLogBorderTop,
+    Color? moveLogHeader,
+    Color? moveLogMissChipBackground,
+    Color? moveLogMissChipBorder,
+    Color? moveLogMissChipText,
+    Color? moveLogHitChipBackground,
+    Color? moveLogHitChipBorder,
+    Color? moveLogHitChipText,
   }) {
     return WordBattleThemeTokens(
       background: background ?? this.background,
@@ -204,6 +304,29 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
       red: red ?? this.red,
       green: green ?? this.green,
       onAccent: onAccent ?? this.onAccent,
+      eventStripBackground: eventStripBackground ?? this.eventStripBackground,
+      eventStripBorder: eventStripBorder ?? this.eventStripBorder,
+      eventMissBar: eventMissBar ?? this.eventMissBar,
+      eventMissLabel: eventMissLabel ?? this.eventMissLabel,
+      eventHitBar: eventHitBar ?? this.eventHitBar,
+      eventHitLabel: eventHitLabel ?? this.eventHitLabel,
+      eventSunkBar: eventSunkBar ?? this.eventSunkBar,
+      eventSunkLabel: eventSunkLabel ?? this.eventSunkLabel,
+      eventWonBar: eventWonBar ?? this.eventWonBar,
+      eventWonLabel: eventWonLabel ?? this.eventWonLabel,
+      eventMessage: eventMessage ?? this.eventMessage,
+      moveLogBackground: moveLogBackground ?? this.moveLogBackground,
+      moveLogBorderTop: moveLogBorderTop ?? this.moveLogBorderTop,
+      moveLogHeader: moveLogHeader ?? this.moveLogHeader,
+      moveLogMissChipBackground:
+          moveLogMissChipBackground ?? this.moveLogMissChipBackground,
+      moveLogMissChipBorder:
+          moveLogMissChipBorder ?? this.moveLogMissChipBorder,
+      moveLogMissChipText: moveLogMissChipText ?? this.moveLogMissChipText,
+      moveLogHitChipBackground:
+          moveLogHitChipBackground ?? this.moveLogHitChipBackground,
+      moveLogHitChipBorder: moveLogHitChipBorder ?? this.moveLogHitChipBorder,
+      moveLogHitChipText: moveLogHitChipText ?? this.moveLogHitChipText,
     );
   }
 
@@ -234,6 +357,66 @@ class WordBattleThemeTokens extends ThemeExtension<WordBattleThemeTokens> {
       red: Color.lerp(red, other.red, t)!,
       green: Color.lerp(green, other.green, t)!,
       onAccent: Color.lerp(onAccent, other.onAccent, t)!,
+      eventStripBackground: Color.lerp(
+        eventStripBackground,
+        other.eventStripBackground,
+        t,
+      )!,
+      eventStripBorder: Color.lerp(
+        eventStripBorder,
+        other.eventStripBorder,
+        t,
+      )!,
+      eventMissBar: Color.lerp(eventMissBar, other.eventMissBar, t)!,
+      eventMissLabel: Color.lerp(eventMissLabel, other.eventMissLabel, t)!,
+      eventHitBar: Color.lerp(eventHitBar, other.eventHitBar, t)!,
+      eventHitLabel: Color.lerp(eventHitLabel, other.eventHitLabel, t)!,
+      eventSunkBar: Color.lerp(eventSunkBar, other.eventSunkBar, t)!,
+      eventSunkLabel: Color.lerp(eventSunkLabel, other.eventSunkLabel, t)!,
+      eventWonBar: Color.lerp(eventWonBar, other.eventWonBar, t)!,
+      eventWonLabel: Color.lerp(eventWonLabel, other.eventWonLabel, t)!,
+      eventMessage: Color.lerp(eventMessage, other.eventMessage, t)!,
+      moveLogBackground: Color.lerp(
+        moveLogBackground,
+        other.moveLogBackground,
+        t,
+      )!,
+      moveLogBorderTop: Color.lerp(
+        moveLogBorderTop,
+        other.moveLogBorderTop,
+        t,
+      )!,
+      moveLogHeader: Color.lerp(moveLogHeader, other.moveLogHeader, t)!,
+      moveLogMissChipBackground: Color.lerp(
+        moveLogMissChipBackground,
+        other.moveLogMissChipBackground,
+        t,
+      )!,
+      moveLogMissChipBorder: Color.lerp(
+        moveLogMissChipBorder,
+        other.moveLogMissChipBorder,
+        t,
+      )!,
+      moveLogMissChipText: Color.lerp(
+        moveLogMissChipText,
+        other.moveLogMissChipText,
+        t,
+      )!,
+      moveLogHitChipBackground: Color.lerp(
+        moveLogHitChipBackground,
+        other.moveLogHitChipBackground,
+        t,
+      )!,
+      moveLogHitChipBorder: Color.lerp(
+        moveLogHitChipBorder,
+        other.moveLogHitChipBorder,
+        t,
+      )!,
+      moveLogHitChipText: Color.lerp(
+        moveLogHitChipText,
+        other.moveLogHitChipText,
+        t,
+      )!,
     );
   }
 }

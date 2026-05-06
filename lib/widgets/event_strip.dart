@@ -106,13 +106,15 @@ class EventStrip extends StatelessWidget {
             ? 14.0
             : AppDimensions.shellPadH;
 
+        final tokens = context.wbTokens;
+
         return Container(
           height: AppDimensions.eventStripH,
           padding: EdgeInsets.symmetric(horizontal: hPad),
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            border: Border(bottom: BorderSide(color: AppColors.borderSubtle)),
+          decoration: BoxDecoration(
+            color: tokens.eventStripBackground,
+            border: Border(bottom: BorderSide(color: tokens.eventStripBorder)),
           ),
           // Empty before first move: space is reserved, nothing shown.
           child: event == null ? null : _StripRow(event: event),
@@ -130,24 +132,24 @@ class _StripRow extends StatelessWidget {
   final _EventData event;
   const _StripRow({required this.event});
 
-  // Left accent bar — Neutral Editorial palette.
-  Color get _barColor => switch (event.type) {
-    _EventType.miss => const Color(0xFFC8C0AE),
-    _EventType.hit => const Color(0xFF3FB6B0),
-    _EventType.sunk => const Color(0xFFB85020),
-    _EventType.won => const Color(0xFF1A8A50),
+  Color _barColor(WordBattleThemeTokens tokens) => switch (event.type) {
+    _EventType.miss => tokens.eventMissBar,
+    _EventType.hit => tokens.eventHitBar,
+    _EventType.sunk => tokens.eventSunkBar,
+    _EventType.won => tokens.eventWonBar,
   };
 
-  // Uppercase label color — matches bar tone, slightly darker.
-  Color get _labelColor => switch (event.type) {
-    _EventType.miss => const Color(0xFF9A8E70),
-    _EventType.hit => const Color(0xFF1A4F4C),
-    _EventType.sunk => const Color(0xFF8A3818),
-    _EventType.won => const Color(0xFF0E5A33),
+  Color _labelColor(WordBattleThemeTokens tokens) => switch (event.type) {
+    _EventType.miss => tokens.eventMissLabel,
+    _EventType.hit => tokens.eventHitLabel,
+    _EventType.sunk => tokens.eventSunkLabel,
+    _EventType.won => tokens.eventWonLabel,
   };
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.wbTokens;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -156,7 +158,7 @@ class _StripRow extends StatelessWidget {
           width: 3,
           height: 32,
           decoration: BoxDecoration(
-            color: _barColor,
+            color: _barColor(tokens),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -172,7 +174,7 @@ class _StripRow extends StatelessWidget {
                 event.tag.toUpperCase(),
                 style: AppTextStyles.eventTag.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: _labelColor,
+                  color: _labelColor(tokens),
                   letterSpacing: 0.13 * 9.5,
                   height: 1,
                 ),
@@ -185,7 +187,7 @@ class _StripRow extends StatelessWidget {
                 style: AppTextStyles.eventMessage.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF2A2A28),
+                  color: tokens.eventMessage,
                   height: 1.08,
                 ),
                 maxLines: 1,
