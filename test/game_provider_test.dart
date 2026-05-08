@@ -1,14 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:word_battleship/models/models.dart';
 import 'package:word_battleship/providers/game_provider.dart';
 import 'package:word_battleship/services/board_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('GameProvider word-driven feedback', () {
     late ProviderContainer container;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       container = ProviderContainer();
     });
 
@@ -59,76 +63,94 @@ void main() {
 
     // ── Interest-cells orientation tests ─────────────────────────────────
 
-    test('two horizontal hits restrict interest to left/right of chain only', () {
-      final initial = container.read(gameProvider);
+    test(
+      'two horizontal hits restrict interest to left/right of chain only',
+      () {
+        final initial = container.read(gameProvider);
 
-      // Need a horizontal ship with ≥3 cells so two hits don't sink it.
-      final candidates = initial.ships.where((s) =>
-        s.cells.length >= 3 &&
-        s.cells.map((sc) => sc.row).toSet().length == 1,
-      ).toList();
-      if (candidates.isEmpty) return; // board has no such ship — skip
+        // Need a horizontal ship with ≥3 cells so two hits don't sink it.
+        final candidates = initial.ships
+            .where(
+              (s) =>
+                  s.cells.length >= 3 &&
+                  s.cells.map((sc) => sc.row).toSet().length == 1,
+            )
+            .toList();
+        if (candidates.isEmpty) return; // board has no such ship — skip
 
-      final ship = candidates.first;
-      final sorted = List<ShipCell>.from(ship.cells)
-        ..sort((a, b) => a.col.compareTo(b.col));
-      final row = sorted[0].row;
-      final col0 = sorted[0].col;
-      final col1 = sorted[1].col; // adjacent to col0
+        final ship = candidates.first;
+        final sorted = List<ShipCell>.from(ship.cells)
+          ..sort((a, b) => a.col.compareTo(b.col));
+        final row = sorted[0].row;
+        final col0 = sorted[0].col;
+        final col1 = sorted[1].col; // adjacent to col0
 
-      container.read(gameProvider.notifier).handleCellClick(row, col0);
-      container.read(gameProvider.notifier).handleCellClick(row, col1);
+        container.read(gameProvider.notifier).handleCellClick(row, col0);
+        container.read(gameProvider.notifier).handleCellClick(row, col1);
 
-      final state = container.read(gameProvider);
-      final interest = state.interestCells;
-      final boardRows = state.board.length;
+        final state = container.read(gameProvider);
+        final interest = state.interestCells;
+        final boardRows = state.board.length;
 
-      // Cells ABOVE and BELOW every hit cell must NOT be in interest.
-      for (final hitCol in [col0, col1]) {
-        if (row > 0) {
+        // Cells ABOVE and BELOW every hit cell must NOT be in interest.
+        for (final hitCol in [col0, col1]) {
+          if (row > 0) {
+            expect(
+              interest.contains(BoardPosition(row: row - 1, col: hitCol)),
+              isFalse,
+              reason:
+                  'Cell above ($row,$hitCol) should not be interesting '
+                  'once orientation is known (horizontal)',
+            );
+          }
+          if (row < boardRows - 1) {
+            expect(
+              interest.contains(BoardPosition(row: row + 1, col: hitCol)),
+              isFalse,
+              reason:
+                  'Cell below ($row,$hitCol) should not be interesting '
+                  'once orientation is known (horizontal)',
+            );
+          }
+        }
+
+        // At least one of the horizontal ends (left / right) must be in interest
+        // if that end is a reachable default cell.
+        final board = state.board;
+        final boardCols = board[0].length;
+        final leftDefault =
+            col0 > 0 && board[row][col0 - 1].status == CellStatus.defaultValue;
+        final rightDefault =
+            col1 < boardCols - 1 &&
+            board[row][col1 + 1].status == CellStatus.defaultValue;
+        if (leftDefault) {
           expect(
-            interest.contains(BoardPosition(row: row - 1, col: hitCol)),
-            isFalse,
-            reason: 'Cell above ($row,$hitCol) should not be interesting '
-                'once orientation is known (horizontal)',
+            interest.contains(BoardPosition(row: row, col: col0 - 1)),
+            isTrue,
+            reason: 'Left end of horizontal chain should be interesting',
           );
         }
-        if (row < boardRows - 1) {
+        if (rightDefault) {
           expect(
-            interest.contains(BoardPosition(row: row + 1, col: hitCol)),
-            isFalse,
-            reason: 'Cell below ($row,$hitCol) should not be interesting '
-                'once orientation is known (horizontal)',
+            interest.contains(BoardPosition(row: row, col: col1 + 1)),
+            isTrue,
+            reason: 'Right end of horizontal chain should be interesting',
           );
         }
-      }
-
-      // At least one of the horizontal ends (left / right) must be in interest
-      // if that end is a reachable default cell.
-      final board = state.board;
-      final boardCols = board[0].length;
-      final leftDefault =
-          col0 > 0 && board[row][col0 - 1].status == CellStatus.defaultValue;
-      final rightDefault = col1 < boardCols - 1 &&
-          board[row][col1 + 1].status == CellStatus.defaultValue;
-      if (leftDefault) {
-        expect(interest.contains(BoardPosition(row: row, col: col0 - 1)), isTrue,
-            reason: 'Left end of horizontal chain should be interesting');
-      }
-      if (rightDefault) {
-        expect(interest.contains(BoardPosition(row: row, col: col1 + 1)), isTrue,
-            reason: 'Right end of horizontal chain should be interesting');
-      }
-    });
+      },
+    );
 
     test('two vertical hits restrict interest to top/bottom of chain only', () {
       final initial = container.read(gameProvider);
 
       // Need a vertical ship with ≥3 cells so two hits don't sink it.
-      final candidates = initial.ships.where((s) =>
-        s.cells.length >= 3 &&
-        s.cells.map((sc) => sc.col).toSet().length == 1,
-      ).toList();
+      final candidates = initial.ships
+          .where(
+            (s) =>
+                s.cells.length >= 3 &&
+                s.cells.map((sc) => sc.col).toSet().length == 1,
+          )
+          .toList();
       if (candidates.isEmpty) return; // board has no such ship — skip
 
       final ship = candidates.first;
@@ -151,7 +173,8 @@ void main() {
           expect(
             interest.contains(BoardPosition(row: hitRow, col: col - 1)),
             isFalse,
-            reason: 'Cell left of ($hitRow,$col) should not be interesting '
+            reason:
+                'Cell left of ($hitRow,$col) should not be interesting '
                 'once orientation is known (vertical)',
           );
         }
@@ -159,7 +182,8 @@ void main() {
           expect(
             interest.contains(BoardPosition(row: hitRow, col: col + 1)),
             isFalse,
-            reason: 'Cell right of ($hitRow,$col) should not be interesting '
+            reason:
+                'Cell right of ($hitRow,$col) should not be interesting '
                 'once orientation is known (vertical)',
           );
         }
@@ -171,15 +195,22 @@ void main() {
       final boardRows = board.length;
       final topDefault =
           row0 > 0 && board[row0 - 1][col].status == CellStatus.defaultValue;
-      final bottomDefault = row1 < boardRows - 1 &&
+      final bottomDefault =
+          row1 < boardRows - 1 &&
           board[row1 + 1][col].status == CellStatus.defaultValue;
       if (topDefault) {
-        expect(interest.contains(BoardPosition(row: row0 - 1, col: col)), isTrue,
-            reason: 'Top end of vertical chain should be interesting');
+        expect(
+          interest.contains(BoardPosition(row: row0 - 1, col: col)),
+          isTrue,
+          reason: 'Top end of vertical chain should be interesting',
+        );
       }
       if (bottomDefault) {
-        expect(interest.contains(BoardPosition(row: row1 + 1, col: col)), isTrue,
-            reason: 'Bottom end of vertical chain should be interesting');
+        expect(
+          interest.contains(BoardPosition(row: row1 + 1, col: col)),
+          isTrue,
+          reason: 'Bottom end of vertical chain should be interesting',
+        );
       }
     });
 
@@ -187,9 +218,7 @@ void main() {
       final initial = container.read(gameProvider);
 
       // Sink a one-cell ship — simplest sinking that leaves no residual hits.
-      final ship = initial.ships.firstWhere(
-        (s) => s.cells.length == 1,
-      );
+      final ship = initial.ships.firstWhere((s) => s.cells.length == 1);
       final sc = ship.cells.first;
       container.read(gameProvider.notifier).handleCellClick(sc.row, sc.col);
 
@@ -226,7 +255,10 @@ void main() {
       // Interest cells must include at least one default neighbour of each hit.
       bool hasNeighbour(int r, int c) {
         for (final d in [
-          [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1],
+          [r - 1, c],
+          [r + 1, c],
+          [r, c - 1],
+          [r, c + 1],
         ]) {
           final nr = d[0], nc = d[1];
           if (nr < 0 || nr >= boardRows || nc < 0 || nc >= boardCols) continue;
@@ -236,10 +268,16 @@ void main() {
         return false;
       }
 
-      expect(hasNeighbour(sc1.row, sc1.col), isTrue,
-          reason: 'Interest cells must cover first ship hit');
-      expect(hasNeighbour(sc2.row, sc2.col), isTrue,
-          reason: 'Interest cells must cover second ship hit');
+      expect(
+        hasNeighbour(sc1.row, sc1.col),
+        isTrue,
+        reason: 'Interest cells must cover first ship hit',
+      );
+      expect(
+        hasNeighbour(sc2.row, sc2.col),
+        isTrue,
+        reason: 'Interest cells must cover second ship hit',
+      );
     });
 
     test('gap between two non-adjacent hits on the same ship is in interest', () {
@@ -247,14 +285,20 @@ void main() {
 
       // Need a ship with ≥4 cells in a straight line to hit cells 0 and 2,
       // leaving cell 1 as an unopened gap.
-      final hCandidates = initial.ships.where((s) =>
-        s.cells.length >= 4 &&
-        s.cells.map((sc) => sc.row).toSet().length == 1,
-      ).toList();
-      final vCandidates = initial.ships.where((s) =>
-        s.cells.length >= 4 &&
-        s.cells.map((sc) => sc.col).toSet().length == 1,
-      ).toList();
+      final hCandidates = initial.ships
+          .where(
+            (s) =>
+                s.cells.length >= 4 &&
+                s.cells.map((sc) => sc.row).toSet().length == 1,
+          )
+          .toList();
+      final vCandidates = initial.ships
+          .where(
+            (s) =>
+                s.cells.length >= 4 &&
+                s.cells.map((sc) => sc.col).toSet().length == 1,
+          )
+          .toList();
 
       if (hCandidates.isNotEmpty) {
         final ship = hCandidates.first;
@@ -262,13 +306,18 @@ void main() {
           ..sort((a, b) => a.col.compareTo(b.col));
         final row = sorted[0].row;
 
-        container.read(gameProvider.notifier).handleCellClick(row, sorted[0].col);
-        container.read(gameProvider.notifier).handleCellClick(row, sorted[2].col);
+        container
+            .read(gameProvider.notifier)
+            .handleCellClick(row, sorted[0].col);
+        container
+            .read(gameProvider.notifier)
+            .handleCellClick(row, sorted[2].col);
 
         final state = container.read(gameProvider);
         expect(
-          state.interestCells
-              .contains(BoardPosition(row: row, col: sorted[1].col)),
+          state.interestCells.contains(
+            BoardPosition(row: row, col: sorted[1].col),
+          ),
           isTrue,
           reason: 'Gap cell between horizontal hits should be in interest',
         );
@@ -278,13 +327,18 @@ void main() {
           ..sort((a, b) => a.row.compareTo(b.row));
         final col = sorted[0].col;
 
-        container.read(gameProvider.notifier).handleCellClick(sorted[0].row, col);
-        container.read(gameProvider.notifier).handleCellClick(sorted[2].row, col);
+        container
+            .read(gameProvider.notifier)
+            .handleCellClick(sorted[0].row, col);
+        container
+            .read(gameProvider.notifier)
+            .handleCellClick(sorted[2].row, col);
 
         final state = container.read(gameProvider);
         expect(
-          state.interestCells
-              .contains(BoardPosition(row: sorted[1].row, col: col)),
+          state.interestCells.contains(
+            BoardPosition(row: sorted[1].row, col: col),
+          ),
           isTrue,
           reason: 'Gap cell between vertical hits should be in interest',
         );
@@ -463,27 +517,32 @@ void main() {
       expect(container.read(gameProvider).layoutProfile, LayoutProfile.wide);
     });
 
-    test('axes do not change between moves (no window-resize recomputation)', () {
-      final initial = container.read(gameProvider);
-      final initialNouns = initial.columnNouns.map((e) => e.word).toList();
-      final initialAdjs = initial.rowAdjectives.map((e) => e.base).toList();
+    test(
+      'axes do not change between moves (no window-resize recomputation)',
+      () {
+        final initial = container.read(gameProvider);
+        final initialNouns = initial.columnNouns.map((e) => e.word).toList();
+        final initialAdjs = initial.rowAdjectives.map((e) => e.base).toList();
 
-      // Fire a few shots.
-      final miss = _firstCell(initial, hasShip: false);
-      container.read(gameProvider.notifier).handleCellClick(miss.row, miss.col);
+        // Fire a few shots.
+        final miss = _firstCell(initial, hasShip: false);
+        container
+            .read(gameProvider.notifier)
+            .handleCellClick(miss.row, miss.col);
 
-      final after = container.read(gameProvider);
-      expect(
-        after.columnNouns.map((e) => e.word).toList(),
-        orderedEquals(initialNouns),
-        reason: 'Column nouns must not change between moves',
-      );
-      expect(
-        after.rowAdjectives.map((e) => e.base).toList(),
-        orderedEquals(initialAdjs),
-        reason: 'Row adjectives must not change between moves',
-      );
-    });
+        final after = container.read(gameProvider);
+        expect(
+          after.columnNouns.map((e) => e.word).toList(),
+          orderedEquals(initialNouns),
+          reason: 'Column nouns must not change between moves',
+        );
+        expect(
+          after.rowAdjectives.map((e) => e.base).toList(),
+          orderedEquals(initialAdjs),
+          reason: 'Row adjectives must not change between moves',
+        );
+      },
+    );
 
     test('compact profile produces shorter nouns than wide profile', () {
       container.read(gameProvider.notifier).resetGame(LayoutProfile.compact);
@@ -492,8 +551,12 @@ void main() {
       container.read(gameProvider.notifier).resetGame(LayoutProfile.wide);
       final wideNouns = container.read(gameProvider).columnNouns;
 
-      final compactMax = compactNouns.map((n) => n.word.length).reduce((a, b) => a > b ? a : b);
-      final wideMax = wideNouns.map((n) => n.word.length).reduce((a, b) => a > b ? a : b);
+      final compactMax = compactNouns
+          .map((n) => n.word.length)
+          .reduce((a, b) => a > b ? a : b);
+      final wideMax = wideNouns
+          .map((n) => n.word.length)
+          .reduce((a, b) => a > b ? a : b);
 
       expect(compactMax, lessThanOrEqualTo(wideMax));
     });

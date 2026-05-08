@@ -55,6 +55,7 @@ class StorageService {
           .map((position) => _boardPositionToJson(position))
           .toList(),
       'currentMode': gameState.currentMode.name,
+      'layoutProfile': gameState.layoutProfile.name,
     });
   }
 
@@ -93,6 +94,10 @@ class StorageService {
       currentMode: WordPairMode.values.firstWhere(
         (mode) => mode.name == data['currentMode'],
         orElse: () => WordPairMode.classic,
+      ),
+      layoutProfile: LayoutProfile.values.firstWhere(
+        (profile) => profile.name == data['layoutProfile'],
+        orElse: () => LayoutProfile.medium,
       ),
     );
   }

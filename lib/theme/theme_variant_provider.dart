@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../services/theme_prefs_storage.dart';
 import 'theme_variant.dart';
 
 const _wbThemeMode = String.fromEnvironment(
@@ -18,10 +21,17 @@ WordBattleThemePreference _initialPreference() {
 }
 
 class ThemeVariantNotifier extends Notifier<WordBattleThemePreference> {
-  @override
-  WordBattleThemePreference build() => _initialPreference();
+  ThemeVariantNotifier({this.initial});
 
-  void set(WordBattleThemePreference preference) => state = preference;
+  final WordBattleThemePreference? initial;
+
+  @override
+  WordBattleThemePreference build() => initial ?? _initialPreference();
+
+  void set(WordBattleThemePreference preference) {
+    state = preference;
+    unawaited(ThemePrefsStorage.savePreference(preference).catchError((_) {}));
+  }
 }
 
 final themeVariantProvider =

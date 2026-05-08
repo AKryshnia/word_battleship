@@ -1,12 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'providers/game_provider.dart';
 import 'screens/theme_splash_screen.dart';
+import 'services/storage_service.dart';
+import 'services/theme_prefs_storage.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_variant.dart';
 import 'theme/theme_variant_provider.dart';
 
-void main() {
-  runApp(const ProviderScope(child: WordBattleshipApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final savedGame = await StorageService.loadGameState();
+  final savedTheme = await ThemePrefsStorage.loadPreference();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        gameProvider.overrideWith(() => GameProvider(initial: savedGame)),
+        themeVariantProvider.overrideWith(
+          () => ThemeVariantNotifier(initial: savedTheme),
+        ),
+      ],
+      child: const WordBattleshipApp(),
+    ),
+  );
 }
 
 class WordBattleshipApp extends ConsumerWidget {

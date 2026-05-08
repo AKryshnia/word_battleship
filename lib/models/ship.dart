@@ -3,17 +3,9 @@ class Ship {
   final List<ShipCell> cells;
   final bool sunk;
 
-  const Ship({
-    required this.id,
-    required this.cells,
-    required this.sunk,
-  });
+  const Ship({required this.id, required this.cells, required this.sunk});
 
-  Ship copyWith({
-    String? id,
-    List<ShipCell>? cells,
-    bool? sunk,
-  }) {
+  Ship copyWith({String? id, List<ShipCell>? cells, bool? sunk}) {
     return Ship(
       id: id ?? this.id,
       cells: cells ?? this.cells,
@@ -24,9 +16,7 @@ class Ship {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Ship &&
-        other.id == id &&
-        other.sunk == sunk;
+    return other is Ship && other.id == id && other.sunk == sunk;
   }
 
   @override
@@ -42,17 +32,12 @@ class ShipCell {
   final int row;
   final int col;
 
-  const ShipCell({
-    required this.row,
-    required this.col,
-  });
+  const ShipCell({required this.row, required this.col});
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ShipCell &&
-        other.row == row &&
-        other.col == col;
+    return other is ShipCell && other.row == row && other.col == col;
   }
 
   @override

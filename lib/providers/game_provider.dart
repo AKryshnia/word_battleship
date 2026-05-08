@@ -1,12 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
 import '../services/board_service.dart';
+import '../services/storage_service.dart';
 
 class GameProvider extends Notifier<SoloGameState> {
+  GameProvider({this.initial});
+
+  final SoloGameState? initial;
+
   @override
   SoloGameState build() {
-    return _createInitialState();
+    return initial ?? _createInitialState();
+  }
+
+  void _persist() {
+    unawaited(StorageService.saveGameState(state).catchError((_) {}));
   }
 
   static SoloGameState _createInitialState([
@@ -80,10 +91,12 @@ class GameProvider extends Notifier<SoloGameState> {
       interestCells: interestCells,
       clearLastSunkMessage: lastSunkMessage == null,
     );
+    _persist();
   }
 
   void resetGame([LayoutProfile profile = LayoutProfile.medium]) {
     state = _createInitialState(profile);
+    _persist();
   }
 
   List<List<Cell>> _updateBoardCell(int row, int col) {
@@ -135,7 +148,9 @@ class GameProvider extends Notifier<SoloGameState> {
   List<List<Cell>> _markSunkCells(List<List<Cell>> board, Ship ship) {
     for (final shipCell in ship.cells) {
       final cell = board[shipCell.row][shipCell.col];
-      board[shipCell.row][shipCell.col] = cell.copyWith(status: CellStatus.sunk);
+      board[shipCell.row][shipCell.col] = cell.copyWith(
+        status: CellStatus.sunk,
+      );
     }
     return board;
   }
@@ -225,10 +240,12 @@ class GameProvider extends Notifier<SoloGameState> {
         if (hitRowSet.length == 1) {
           // Horizontal span
           final r = hitRowSet.first;
-          final minC =
-              hitCells.map((sc) => sc.col).reduce((a, b) => a < b ? a : b);
-          final maxC =
-              hitCells.map((sc) => sc.col).reduce((a, b) => a > b ? a : b);
+          final minC = hitCells
+              .map((sc) => sc.col)
+              .reduce((a, b) => a < b ? a : b);
+          final maxC = hitCells
+              .map((sc) => sc.col)
+              .reduce((a, b) => a > b ? a : b);
           for (var c = minC; c <= maxC; c++) {
             add(r, c); // gaps in span
           }
@@ -237,10 +254,12 @@ class GameProvider extends Notifier<SoloGameState> {
         } else if (hitColSet.length == 1) {
           // Vertical span
           final c = hitColSet.first;
-          final minR =
-              hitCells.map((sc) => sc.row).reduce((a, b) => a < b ? a : b);
-          final maxR =
-              hitCells.map((sc) => sc.row).reduce((a, b) => a > b ? a : b);
+          final minR = hitCells
+              .map((sc) => sc.row)
+              .reduce((a, b) => a < b ? a : b);
+          final maxR = hitCells
+              .map((sc) => sc.row)
+              .reduce((a, b) => a > b ? a : b);
           for (var r = minR; r <= maxR; r++) {
             add(r, c); // gaps in span
           }

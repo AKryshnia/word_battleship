@@ -23,8 +23,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final profile = _layoutProfile(context);
-      final current = ref.read(gameProvider).layoutProfile;
-      if (current != profile) {
+      final current = ref.read(gameProvider);
+      // Don't blow away a restored partially-played or finished game just
+      // because the persisted layoutProfile differs from the current screen.
+      if (current.movesCount > 0 || current.isFinished) return;
+      if (current.layoutProfile != profile) {
         ref.read(gameProvider.notifier).resetGame(profile);
       }
     });

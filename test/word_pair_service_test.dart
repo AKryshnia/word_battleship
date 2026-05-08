@@ -208,23 +208,28 @@ void main() {
       expect(compactMaxNoun, lessThanOrEqualTo(wideMaxNoun));
     });
 
-    test('compact profile nouns do not exceed 4 characters (unless fallback needed)', () {
-      final vocab = svc.generateBoardVocabularyForProfile(
-        size: 10,
-        mode: WordPairMode.classic,
-        profile: LayoutProfile.compact,
-        seed: 7,
-      );
-      // All nouns should be ≤ 4 chars (the compact limit, unless dictionary
-      // has fewer than 10 such nouns and fallback kicks in).
-      for (final noun in vocab.columnNouns) {
-        expect(
-          noun.word.length,
-          lessThanOrEqualTo(6), // generous upper bound allowing one fallback step
-          reason: 'Compact profile noun "${noun.word}" is too long',
+    test(
+      'compact profile nouns do not exceed 4 characters (unless fallback needed)',
+      () {
+        final vocab = svc.generateBoardVocabularyForProfile(
+          size: 10,
+          mode: WordPairMode.classic,
+          profile: LayoutProfile.compact,
+          seed: 7,
         );
-      }
-    });
+        // All nouns should be ≤ 4 chars (the compact limit, unless dictionary
+        // has fewer than 10 such nouns and fallback kicks in).
+        for (final noun in vocab.columnNouns) {
+          expect(
+            noun.word.length,
+            lessThanOrEqualTo(
+              6,
+            ), // generous upper bound allowing one fallback step
+            reason: 'Compact profile noun "${noun.word}" is too long',
+          );
+        }
+      },
+    );
 
     test('medium profile adjectives do not exceed 10 characters', () {
       final vocab = svc.generateBoardVocabularyForProfile(

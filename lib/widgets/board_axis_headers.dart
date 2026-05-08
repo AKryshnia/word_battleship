@@ -76,11 +76,7 @@ class BoardNounLabel extends StatelessWidget {
         child: AnimatedDefaultTextStyle(
           style: textStyle,
           duration: const Duration(milliseconds: 100),
-          child: Text(
-            display,
-            overflow: TextOverflow.visible,
-            softWrap: false,
-          ),
+          child: Text(display, overflow: TextOverflow.visible, softWrap: false),
         ),
       ),
     );
