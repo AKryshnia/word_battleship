@@ -15,6 +15,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const ProviderScope(child: WordBattleshipApp()));
+    // Advance past ThemeSplashScreen: 150 ms start delay + 2000 ms (assembly +
+    // hold) + 350 ms fade route transition.
+    await tester.pump(const Duration(milliseconds: 2200));
+    await tester.pumpAndSettle();
 
     // Brand text — rendered as Text.rich, toPlainText() == 'WordBattle'
     expect(find.text('WordBattle'), findsOneWidget);

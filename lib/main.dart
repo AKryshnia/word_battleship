@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'screens/game_screen.dart';
+import 'screens/theme_splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_variant.dart';
 import 'theme/theme_variant_provider.dart';
@@ -30,7 +30,7 @@ class WordBattleshipApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       themeMode: ThemeMode.light,
-      home: const GameScreen(),
+      home: const ThemeSplashScreen(),
     );
   }
 }
