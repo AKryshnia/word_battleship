@@ -4,6 +4,11 @@ Word Battleship — прототип игры "Морской бой" на Flutt
 
 Каждая клетка содержит фразу из прилагательного и существительного. Когда игрок нажимает на клетку, игра определяет попадание или промах и показывает результат и фразу в полосе событий над полем.
 
+Игра выложена на RuStore: https://www.rustore.ru/catalog/app/ru.svartha.wordbattle
+
+<img width="909" height="1194" alt="2-1" src="https://github.com/user-attachments/assets/5ce9f766-e315-4581-93a2-cf41e07d25c3" />
+
+
 ---
 
 Word Battleship is a Flutter prototype that combines solo Battleship gameplay with Russian word-association practice.
